@@ -26,7 +26,8 @@ Resources:
             Method: get
       # Timeout: 900
       # MemorySize: 1024
-      # Policies:
+      Policies: 
+        AWSLambdaBasicExecutionRole
       #   - Statement:
       #     - Effect: Allow
       #       Action: connect:*
