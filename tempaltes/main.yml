@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Cognito APIGATEWAY test
+
+Parameters:
+  ProjectName:
+    Type: String
+    Description: Cognito-Test
+    Default: Cognito-Test
+
+Resources:
+  ServerlessRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: Basic AWS Api Gateway
+      StageName: Staging
+  HelloWorld:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ../bin/hello.zip
+      FunctionName: !Sub "${ProjectName}-hello"
+      Handler: bootstrap
+      Runtime: provided.al2
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /hello
+            Method: get
+      # Timeout: 900
+      # MemorySize: 1024
+      # Policies:
+      #   - Statement:
+      #     - Effect: Allow
+      #       Action: connect:*
+      #       Resource: "*"
+Outputs:
+  LambdaEmailArnOutput:
+    Description: HelloWorld
+    Value: !GetAtt HelloWorld.Arn
+  HelloWorldApi:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello"
