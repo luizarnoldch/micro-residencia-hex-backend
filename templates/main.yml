@@ -18,20 +18,21 @@ Resources:
       FunctionName: !Sub "${ProjectName}-hello"
       Handler: bootstrap
       Runtime: provided.al2
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /hello
-            Method: get
-      # Timeout: 900
-      # MemorySize: 1024
       Policies: 
         AWSLambdaBasicExecutionRole
       #   - Statement:
       #     - Effect: Allow
       #       Action: connect:*
       #       Resource: "*"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+      # Timeout: 900
+      # MemorySize: 1024
+      
 Outputs:
   LambdaEmailArnOutput:
     Description: HelloWorld
