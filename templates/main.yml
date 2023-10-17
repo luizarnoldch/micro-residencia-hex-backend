@@ -9,15 +9,7 @@ Parameters:
     Default: Cognito-Test
 
 Resources:
-  ApiGatewayApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: Prod
-      Cors:
-        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
-        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-        AllowOrigin: "'*'"
-  HelloWorld:
+  HelloWorldFunction:
     Type: AWS::Serverless::Function
     Metadata:
       BuildMethod: go1.x
@@ -26,25 +18,23 @@ Resources:
       FunctionName: !Sub "${ProjectName}-hello"
       Handler: bootstrap
       Runtime: provided.al2
-      Policies: 
-        AWSLambdaBasicExecutionRole
       #   - Statement:
       #     - Effect: Allow
       #       Action: connect:*
       #       Resource: "*"
       Events:
-        ApiEvent:
-          Type: Api
+        HelloWorld:
+          Type: Api 
           Properties:
-            Path: /
+            Path: /helloWorld
             Method: get
       # Timeout: 900
       # MemorySize: 1024
       
 Outputs:
-  LambdaEmailArnOutput:
-    Description: HelloWorld
-    Value: !GetAtt HelloWorld.Arn
   HelloWorldApi:
     Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+  HelloWorldFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt HelloWorldFunction.Arn
