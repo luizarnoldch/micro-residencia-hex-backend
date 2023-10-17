@@ -9,11 +9,6 @@ Parameters:
     Default: Cognito-Test
 
 Resources:
-  ServerlessRestApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      Name: Basic AWS Api Gateway
-      StageName: Staging
   HelloWorld:
     Type: AWS::Serverless::Function
     Metadata:
