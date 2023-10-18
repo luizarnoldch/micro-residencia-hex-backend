@@ -150,6 +150,9 @@ Outputs:
   UserPoolClientId:
     Description: "User Pool Client Id"
     Value: !Ref CognitoUserPoolClient
+  UserPoolClientDomain:
+    Description: "User Pool Client Id"
+    Value: !GetAtt CognitoUserPoolClient.CloudFrontDistribution
   HelloWorldFunction:
     Description: "Hello World Lambda Function ARN"
     Value: !GetAtt HelloWorldFunction.Arn
