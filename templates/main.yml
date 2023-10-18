@@ -150,9 +150,9 @@ Outputs:
   UserPoolClientId:
     Description: "User Pool Client Id"
     Value: !Ref CognitoUserPoolClient
-  UserPoolClientDomain:
-    Description: "User Pool Client Id"
-    Value: !GetAtt UserPoolDomain.CloudFrontDistribution
+  CognitoLoginLink:
+    Description: "Link to Cognito Login Page"
+    Value: !Sub "https://${UserPoolClientDomain}/login?client_id=${UserPoolClientId}&response_type=token&scope=email+openid+phone&redirect_uri=https%3A%2F%2Fexample.com%2Fcallback"
   HelloWorldFunction:
     Description: "Hello World Lambda Function ARN"
     Value: !GetAtt HelloWorldFunction.Arn
