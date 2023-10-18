@@ -63,7 +63,6 @@ Resources:
           Required: true
       EmailConfiguration:
           EmailSendingAccount: COGNITO_DEFAULT
-          From: no-reply@verificationemail.com
 
   CognitoUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
