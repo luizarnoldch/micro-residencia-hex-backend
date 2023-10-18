@@ -7,30 +7,12 @@ Parameters:
     Type: String
     Description: Cognito-Test
     Default: Cognito-Test
+  Stage:
+    Type: String
+    Description: Stage of API GATEWAY
+    Default: dev
 
 Resources:
-  HelloWorldFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: go1.x
-    Properties:
-      CodeUri: ../bin/hello.zip
-      FunctionName: !Sub "${ProjectName}-hello"
-      Handler: bootstrap
-      Runtime: provided.al2
-      #   - Statement:
-      #     - Effect: Allow
-      #       Action: connect:*
-      #       Resource: "*"
-      Events:
-        HelloWorld:
-          Type: Api 
-          Properties:
-            Path: /helloWorld
-            Method: get
-      # Timeout: 900
-      # MemorySize: 1024
-  
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
@@ -106,16 +88,66 @@ Resources:
       Domain: !Sub "auth-api-test-${AWS::AccountId}"
       UserPoolId: !Ref CognitoUserPool
   
-  UserPoolUICustomization:
-    Type: AWS::Cognito::UserPoolUICustomizationAttachment
-    Properties: 
-      ClientId: !Ref CognitoUserPoolClient
-      UserPoolId: !Ref CognitoUserPool
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "auth-api-${Stage}"
+      StageName: !Ref Stage
+      OpenApiVersion: '2.0'
+      Description: API supporting the application
+      TracingEnabled: true
+      Variables:
+        LAMBDA_ALIAS: !Ref Stage
+      Cors:
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowMethods: "'DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT'"
+        AllowOrigin: "'*'"
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        AddDefaultAuthorizerToCorsPreflight: false
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt CognitoUserPool.Arn
+            Identity: 
+                Header: Authorization
+                ReauthorizeEvery: 300
+
+              
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ../bin/hello.zip
+      FunctionName: !Sub "${ProjectName}-hello"
+      Handler: bootstrap
+      Runtime: provided.al2
+      #   - Statement:
+      #     - Effect: Allow
+      #       Action: connect:*
+      #       Resource: "*"
+      Events:
+        HelloWorld:
+          Type: Api 
+          Properties:
+            Auth: 
+              Authorizer: CognitoAuthorizer
+            Path: /helloWorld
+            Method: get
+            RestApiId: !Ref ApiGatewayApi
+      # Timeout: 900
+      # MemorySize: 1024
       
 Outputs:
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+  ApiGatewayApi:
+    Description: "API endpoint"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/"
+  UserPoolId:
+    Description: "User Pool Id"
+    Value: !Ref CognitoUserPool
+  UserPoolClientId:
+    Description: "User Pool Client Id"
+    Value: !Ref CognitoUserPoolClient
   HelloWorldFunction:
     Description: "Hello World Lambda Function ARN"
     Value: !GetAtt HelloWorldFunction.Arn
