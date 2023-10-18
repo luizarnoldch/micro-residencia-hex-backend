@@ -132,6 +132,8 @@ Resources:
           Properties:
             Auth: 
               Authorizer: CognitoAuthorizer
+              AuthorizationScopes:
+                - email
             Path: /helloWorld
             Method: get
             RestApiId: !Ref ApiGatewayApi
@@ -141,7 +143,7 @@ Resources:
 Outputs:
   ApiGatewayApi:
     Description: "API endpoint"
-    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/helloWorld"
   UserPoolId:
     Description: "User Pool Id"
     Value: !Ref CognitoUserPool
