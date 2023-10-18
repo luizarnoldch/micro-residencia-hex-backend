@@ -56,6 +56,9 @@ Resources:
         - email
       UsernameConfiguration:
         CaseSensitive: true
+      UserAttributeUpdateSettings:
+        AttributesRequireVerificationBeforeUpdate: 
+          - email
       Schema:
         - AttributeDataType: "String"
           Mutable: true
