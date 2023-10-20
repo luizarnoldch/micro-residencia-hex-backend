@@ -6,9 +6,27 @@ Parameters:
   ProjectName:
     Type: String
     Description: Proyecto Residentes para Tendencias de Arquitectura de Software
-    Default: Residentes-Stack
-
+    Default: Residentes
+  Stage:
+    Type: String
+    Description: Stage of API GATEWAY
+    Default: dev
 Resources:
+  DocumentoApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "${ProjectName}-api-${Stage}"
+      StageName: !Ref Stage
+      OpenApiVersion: '2.0'
+      Description: API supporting the application
+      TracingEnabled: true
+      Variables:
+        LAMBDA_ALIAS: !Ref Stage
+      Cors:
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowMethods: "'DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT'"
+        AllowOrigin: "'*'"
+
   CreateDocumentFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -35,7 +53,7 @@ Resources:
   DocumentTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
-      TableName: !Sub "${ProjectName}-Documentos"
+      TableName: !Sub "${ProjectName}-documentos"
       PointInTimeRecoverySpecification: true
       PrimaryKey:
         Name: "id_documento"
@@ -52,4 +70,4 @@ Outputs:
     Value: !Ref DocumentTable
   DocumentoApi:
     Description: "API Gateway endpoint URL para documentos"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+    Value: !Sub "https://${DocumentoApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
