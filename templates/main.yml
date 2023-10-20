@@ -54,15 +54,9 @@ Resources:
     Type: AWS::Serverless::SimpleTable
     Properties:
       TableName: !Sub "${ProjectName}-documentos"
-      PointInTimeRecoverySpecification: true
       PrimaryKey:
         Name: "id_documento"
         Type: String
-      ProvisionedThroughput: 
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
-      SSESpecification:
-        SSEEnabled: true
 
 Outputs:
   DocumentTableName:
