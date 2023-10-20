@@ -48,16 +48,12 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref DocumentTable
-            Actions:
-              - dynamodb:PartiQLSelect
-              - dynamodb:GetItem
-              - dynamodb:Query
-              - dynamodb:Scan
-              - dynamodb:BatchGetItem
-              - dynamodb:BatchWriteItem
-              - dynamodb:PutItem
-              - dynamodb:UpdateItem
-              - dynamodb:DeleteItem
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'dynamodb:PartiQLSelect'
+              Resource: !GetAtt DocumentTable.Arn
       Events:
         GetAllDocuments:
           Type: Api
@@ -80,12 +76,18 @@ Resources:
             Path: /
             Method: get
   DocumentTable:
-    Type: AWS::Serverless::SimpleTable
+    Type: 'AWS::DynamoDB::Table'
     Properties:
       TableName: !Sub "${ProjectName}-documentos"
-      PrimaryKey:
-        Name: "id_documento"
-        Type: String
+      AttributeDefinitions:
+        - AttributeName: id_documento
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id_documento
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
 Outputs:
   DocumentTableName:
     Description: Nombre de la tabla de documentos en DynamoDB
