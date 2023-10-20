@@ -48,7 +48,7 @@ Resources:
           Properties:
             Path: /document
             Method: post
-            RestApiId: !Ref ApiGatewayApi
+            RestApiId: !Ref DocumentoApiGateway
   
   DocumentTable:
     Type: AWS::Serverless::SimpleTable
