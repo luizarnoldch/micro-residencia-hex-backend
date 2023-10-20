@@ -12,16 +12,16 @@ type DocumentoServiceDynamo struct {
 	table  string
 }
 
-func (dynamo DocumentoServiceDynamo) CreateDocument(req domain.DocumentoRequest) (domain.DocumentoResponse, error) {
+func (dynamo DocumentoServiceDynamo) CreateDocument(req domain.DocumentoRequest) (domain.DocumentoSimpleResponse, error) {
 	_, err := attributevalue.MarshalMap(req)
 	if err != nil {
-		return domain.DocumentoResponse{
+		return domain.DocumentoSimpleResponse{
 			Status:  504,
 			Message: err.Error(),
 		}, err
 	}
 
-	return domain.DocumentoResponse{
+	return domain.DocumentoSimpleResponse{
 		Status:  200,
 		Message: "item guardado",
 	}, nil
