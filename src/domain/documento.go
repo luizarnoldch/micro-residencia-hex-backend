@@ -10,11 +10,11 @@ type DocumentoRequest struct {
 }
 
 type Documento struct {
-	Documento_ID   string `dynamodbav:"id_documento"`
-	Departamento   string `dynamodbav:"departamento"`
-	Residente      string `dynamodbav:"residente"`
-	FechaDePago    string `dynamodbav:"fecha_de_pago"`
-	TipoDeServicio string `dynamodbav:"tipo_de_servicio"`
+	Documento_ID   string `dynamodbav:"id_documento" json:"id_documento"`
+	Departamento   string `dynamodbav:"departamento" json:"departamento"`
+	Residente      string `dynamodbav:"residente" json:"residente"`
+	FechaDePago    string `dynamodbav:"fecha_de_pago" json:"fecha_de_pago"`
+	TipoDeServicio string `dynamodbav:"tipo_de_servicio" json:"tipo_de_servicio"`
 }
 
 func (req DocumentoRequest) ToDocumento() Documento {
