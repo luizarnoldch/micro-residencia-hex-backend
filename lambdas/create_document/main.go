@@ -2,14 +2,14 @@ package main
 
 import (
 	"context"
-	// "encoding/json"
-	// "fmt"
+	"encoding/json"
+	"fmt"
 	"os"
 
-	// "log"
+	"log"
 
 	// "main/src/application"
-	// "main/src/domain"
+	"main/src/domain"
 	// "main/src/infrastructure"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -49,9 +49,22 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	// // 	return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 500}, nil
 	// // }
 
+	var documentoRequest domain.DocumentoRequest
+
+	if err := json.Unmarshal([]byte(request.Body), &documentoRequest); err != nil {
+		log.Println("Error parsing request body as JSON.")
+		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 502}, nil
+	}
+
+	responseBody, err := json.Marshal(documentoRequest)
+	if err != nil {
+		log.Printf("error marshaling response to JSON: %s\n", err)
+		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 500}, nil
+	}
+
 	return events.APIGatewayProxyResponse{
 		Headers:    map[string]string{"Content-Type": "application/json"},
-		Body:       string(request.Body),
+		Body:       string(responseBody),
 		StatusCode: 200,
 	}, nil
 }
