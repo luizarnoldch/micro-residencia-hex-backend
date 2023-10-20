@@ -1,5 +1,7 @@
 package domain
 
+import "github.com/google/uuid"
+
 type DocumentoRequest struct {
 	Departamento   string `json:"departamento"`
 	Residente      string `json:"residente"`
@@ -13,6 +15,16 @@ type Documento struct {
 	Residente      string `dynamodbav:"residente"`
 	FechaDePago    string `dynamodbav:"fecha_de_pago"`
 	TipoDeServicio string `dynamodbav:"tipo_de_servicio"`
+}
+
+func (req DocumentoRequest) ToDocumento() Documento {
+	return Documento{
+		Documento_ID:   uuid.NewString(),
+		Departamento:   req.Departamento,
+		Residente:      req.Residente,
+		FechaDePago:    req.FechaDePago,
+		TipoDeServicio: req.TipoDeServicio,
+	}
 }
 
 type DocumentoSimpleResponse struct {
