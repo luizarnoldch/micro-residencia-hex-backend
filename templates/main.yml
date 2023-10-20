@@ -9,7 +9,7 @@ Parameters:
     Default: Residentes-Stack
 
 Resources:
-  CreateDocument:
+  CreateDocumentFunction:
     Type: AWS::Serverless::Function
     Metadata:
       BuildMethod: go1.x
@@ -25,7 +25,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref DocumentTable
       Events:
-        HelloWorld:
+        CreateDocument:
           Type: Api 
           Properties:
             Path: /document
@@ -45,7 +45,7 @@ Resources:
         WriteCapacityUnits: 5
       SSESpecification:
         SSEEnabled: true
-        
+
 Outputs:
   DocumentTableName:
     Description: Nombre de la tabla de documentos en DynamoDB
