@@ -1,5 +1,5 @@
 TEMPLATE_FILE := templates/main.yml
-STACK_NAME := cognito-apigateway
+STACK_NAME := residentes
 
 
 init:
@@ -20,6 +20,10 @@ deploy:
 	sam deploy --template-file $(TEMPLATE_FILE) --stack-name $(STACK_NAME) --capabilities CAPABILITY_NAMED_IAM --resolve-s3
 destroy:
 	aws cloudformation delete-stack --stack-name $(STACK_NAME)
+b-deploy:
+	make build
+	make deploy
+	make f_test
 e2e:
 	make destroy
 	sleep 7

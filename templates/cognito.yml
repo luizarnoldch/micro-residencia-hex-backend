@@ -1,0 +1,161 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Cognito APIGATEWAY test
+
+Parameters:
+  ProjectName:
+    Type: String
+    Description: Cognito-Test
+    Default: Cognito-Test
+  Stage:
+    Type: String
+    Description: Stage of API GATEWAY
+    Default: dev
+
+Resources:
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: app-user-pool
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 2
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      AutoVerifiedAttributes:
+        - email
+      MfaConfiguration: "OFF"
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          TemporaryPasswordValidityDays: 7
+      UsernameAttributes:
+        - email
+      UsernameConfiguration:
+        CaseSensitive: true
+      UserAttributeUpdateSettings:
+        AttributesRequireVerificationBeforeUpdate: 
+          - email
+      Schema:
+        - AttributeDataType: "String"
+          Mutable: true
+          Name: email
+          Required: true
+      EmailConfiguration:
+          EmailSendingAccount: COGNITO_DEFAULT
+
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref CognitoUserPool
+      ClientName: app-user-pool-client
+      GenerateSecret: false
+      CallbackURLs: 
+        - https://example.com/callback
+      # LogoutURLs: 
+      #   - String
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - implicit
+      AllowedOAuthScopes:
+        - email
+        - openid
+        - phone
+      SupportedIdentityProviders:
+        - COGNITO
+      ExplicitAuthFlows:
+        - ALLOW_REFRESH_TOKEN_AUTH 
+        - ALLOW_USER_SRP_AUTH
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: days
+      IdTokenValidity: 60
+      AccessTokenValidity: 60
+      RefreshTokenValidity: 30
+      AuthSessionValidity: 3
+      EnableTokenRevocation: true
+      PreventUserExistenceErrors: ENABLED
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties: 
+      Domain: !Sub "auth-api-test-${AWS::AccountId}"
+      UserPoolId: !Ref CognitoUserPool
+  
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "auth-api-${Stage}"
+      StageName: !Ref Stage
+      OpenApiVersion: '2.0'
+      Description: API supporting the application
+      TracingEnabled: true
+      Variables:
+        LAMBDA_ALIAS: !Ref Stage
+      Cors:
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowMethods: "'DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT'"
+        AllowOrigin: "'*'"
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        AddDefaultAuthorizerToCorsPreflight: false
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt CognitoUserPool.Arn
+            Identity: 
+                Header: Authorization
+                ReauthorizeEvery: 300
+
+              
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ../bin/hello.zip
+      FunctionName: !Sub "${ProjectName}-hello"
+      Handler: bootstrap
+      Runtime: provided.al2
+      #   - Statement:
+      #     - Effect: Allow
+      #       Action: connect:*
+      #       Resource: "*"
+      Events:
+        HelloWorld:
+          Type: Api 
+          Properties:
+            Auth: 
+              Authorizer: CognitoAuthorizer
+              AuthorizationScopes:
+                - email
+            Path: /helloWorld
+            Method: get
+            RestApiId: !Ref ApiGatewayApi
+      # Timeout: 900
+      # MemorySize: 1024
+      
+Outputs:
+  ApiGatewayApi:
+    Description: "API endpoint"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/helloWorld"
+  UserPoolId:
+    Description: "User Pool Id"
+    Value: !Ref CognitoUserPool
+  UserPoolClientId:
+    Description: "User Pool Client Id"
+    Value: !Ref CognitoUserPoolClient
+  CognitoLoginLink:
+    Description: "Link to Cognito Login Page"
+    Value: !Sub "https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com/login?client_id=${CognitoUserPoolClient}&response_type=token&scope=email+openid+phone&redirect_uri=https%3A%2F%2Fexample.com%2Fcallback"
+  HelloWorldFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt HelloWorldFunction.Arn
+  HelloWorldFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt HelloWorldFunctionRole.Arn
