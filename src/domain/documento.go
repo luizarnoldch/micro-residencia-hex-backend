@@ -10,7 +10,7 @@ type DocumentoRequest struct {
 }
 
 type Documento struct {
-	Documento_ID   string `dynamodbav:"document_id"`
+	Documento_ID   string `dynamodbav:"id_documento"`
 	Departamento   string `dynamodbav:"departamento"`
 	Residente      string `dynamodbav:"residente"`
 	FechaDePago    string `dynamodbav:"fecha_de_pago"`
