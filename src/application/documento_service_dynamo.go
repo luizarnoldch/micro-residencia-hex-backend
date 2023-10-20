@@ -2,8 +2,8 @@ package application
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"log"
 	"main/src/domain"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -19,9 +19,6 @@ type DocumentoServiceDynamo struct {
 
 func (dynamo DocumentoServiceDynamo) CreateDocument(req domain.DocumentoRequest) (domain.DocumentoSimpleResponse, error) {
     reqToDoc := req.ToDocumento()
-
-	log.Println(reqToDoc)
-
     item, err := attributevalue.MarshalMap(reqToDoc)
     if err != nil {
         return domain.DocumentoSimpleResponse{
@@ -43,9 +40,27 @@ func (dynamo DocumentoServiceDynamo) CreateDocument(req domain.DocumentoRequest)
         }, err
     }
 
+	var unmarshalMap domain.Documento
+
+	err = attributevalue.UnmarshalMap(item, &unmarshalMap)
+	if err != nil {
+        return domain.DocumentoSimpleResponse{
+            Status:  503,
+            Message: err.Error(),
+        }, err
+    }
+
+	responseBody, err := json.Marshal(unmarshalMap)
+	if err != nil {
+		return domain.DocumentoSimpleResponse{
+            Status:  503,
+            Message: err.Error(),
+        }, err
+	}
+
     return domain.DocumentoSimpleResponse{
         Status:  200,
-        Message: "item guardado",
+        Message: string(responseBody),
     }, nil
 }
 
@@ -58,8 +73,6 @@ func (dynamo DocumentoServiceDynamo) GetAllDocuments() ([]domain.DocumentoRespon
 	if err != nil {
 		return nil, err
 	}
-
-	log.Println(response)
 
 	var documentos []domain.DocumentoResponse
 	err = attributevalue.UnmarshalListOfMaps(response.Items, &documentos)
