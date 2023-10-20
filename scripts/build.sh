@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FOLDERS=($(ls -d lambdas/*/))
+FOLDERS=($(ls lambdas/*/))
 
 export GOOS="linux"
 export GOARCH="amd64"

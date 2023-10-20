@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FOLDERS=($(ls -d events/*/))
+FOLDERS=($(ls events/*/))
 
 test_lambda() {
   for folder in "${FOLDERS[@]}"; do
