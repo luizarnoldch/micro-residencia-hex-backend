@@ -43,9 +43,15 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 400}, nil
 	}
 
+	responseBody, err := json.Marshal(response)
+	if err != nil {
+		log.Printf("error marshaling response to JSON: %s\n", err)
+		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 500}, nil
+	}
+
 	return events.APIGatewayProxyResponse{
 		Headers:    map[string]string{"Content-Type": "application/json"},
-		Body:       response.Message,
+		Body:       string(responseBody),
 		StatusCode: response.Status,
 	}, nil
 }
