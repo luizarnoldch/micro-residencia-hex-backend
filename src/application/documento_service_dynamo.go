@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"main/src/domain"
+	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -62,10 +63,16 @@ func (dynamo DocumentoServiceDynamo) GetAllDocuments() ([]domain.DocumentoRespon
 	}
 
 	var documentosResponse []domain.DocumentoResponse
+	var wg sync.WaitGroup
 
-	for _, documento := range documentos{
-		documentosResponse = append(documentosResponse, documento.ToDocumentoResponse())
+	for _, documento := range documentos {
+		wg.Add(1) 
+		go func(doc domain.Documento) {
+			defer wg.Done()
+			documentosResponse = append(documentosResponse, doc.ToDocumentoResponse())
+		}(documento)
 	}
+	wg.Wait()
 
 	return documentosResponse, nil
 }
