@@ -32,7 +32,7 @@ Resources:
     Metadata:
       BuildMethod: go1.x
     Properties:
-      CodeUri: ../bin/hello.zip
+      CodeUri: ../bin/create_document.zip
       FunctionName: !Sub "${ProjectName}-create_document"
       Handler: bootstrap
       Runtime: provided.al2
