@@ -1,13 +1,14 @@
 #!/bin/bash
 
-FOLDERS=($(ls events/*/))
+FOLDERS=($(ls -d events/*/))
 
 test_lambda() {
   for folder in "${FOLDERS[@]}"; do
     (
-      aws lambda invoke --function-name Cognito-Test-${folder} --payload file://events/${folder}/request/input.json --cli-binary-format raw-in-base64-out ./events/${folder}/response/output.json
+      folder_name=$(basename "${folder}")
+      aws lambda invoke --function-name Cognito-Test-${folder_name} --payload file://events/${folder_name}/request/input.json --cli-binary-format raw-in-base64-out ./events/${folder_name}/response/output.json
       echo -e "\n"
-      cat ./events/${folder}/response/output.json
+      cat ./events/${folder_name}/response/output.json
       echo -e "\n"
     )
   done
