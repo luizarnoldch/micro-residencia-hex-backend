@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"main/src/domain"
 
@@ -40,27 +39,9 @@ func (dynamo DocumentoServiceDynamo) CreateDocument(req domain.DocumentoRequest)
         }, err
     }
 
-	var unmarshalMap domain.Documento
-
-	err = attributevalue.UnmarshalMap(item, &unmarshalMap)
-	if err != nil {
-        return domain.DocumentoSimpleResponse{
-            Status:  503,
-            Message: err.Error(),
-        }, err
-    }
-
-	responseBody, err := json.Marshal(unmarshalMap)
-	if err != nil {
-		return domain.DocumentoSimpleResponse{
-            Status:  503,
-            Message: err.Error(),
-        }, err
-	}
-
     return domain.DocumentoSimpleResponse{
         Status:  200,
-        Message: string(responseBody),
+        Message: "documento guardado",
     }, nil
 }
 
@@ -74,13 +55,19 @@ func (dynamo DocumentoServiceDynamo) GetAllDocuments() ([]domain.DocumentoRespon
 		return nil, err
 	}
 
-	var documentos []domain.DocumentoResponse
+	var documentos []domain.Documento
 	err = attributevalue.UnmarshalListOfMaps(response.Items, &documentos)
 	if err != nil {
 		return nil, err
 	}
 
-	return documentos, nil
+	var documentosResponse []domain.DocumentoResponse
+
+	for _, documento := range documentos{
+		documentosResponse = append(documentosResponse, documento.ToDocumentoResponse())
+	}
+
+	return documentosResponse, nil
 }
 
 func NewDocumentoServiceDynamo(client *dynamodb.Client, table string, ctx context.Context) *DocumentoServiceDynamo {

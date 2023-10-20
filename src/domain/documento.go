@@ -17,6 +17,16 @@ type Documento struct {
 	TipoDeServicio string `dynamodbav:"tipo_de_servicio" json:"tipo_de_servicio"`
 }
 
+func (doc Documento) ToDocumentoResponse() DocumentoResponse {
+	return DocumentoResponse{
+		Documento_ID:   doc.Documento_ID,
+		Departamento:   doc.Departamento,
+		Residente:      doc.Residente,
+		FechaDePago:    doc.FechaDePago,
+		TipoDeServicio: doc.TipoDeServicio,
+	}
+}
+
 func (req DocumentoRequest) ToDocumento() Documento {
 	return Documento{
 		Documento_ID:   uuid.NewString(),
