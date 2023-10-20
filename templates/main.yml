@@ -50,6 +50,7 @@ Resources:
             TableName: !Ref DocumentTable
             Actions:
               - dynaodb:ExecuteStatement
+              - dynaodb:PartiQLSelect
       Events:
         GetAllDocuments:
           Type: Api
