@@ -8,11 +8,11 @@ cmd
 # Lambdas
 #/lambdas/create_document
 /lambdas/delete_document
-/lambdas/get_all_documents
+#/lambdas/get_all_documents
 /lambdas/update_document
 
 # Events
 #/events/create_document
 /events/delete_document
-/events/get_all_documents
+#/events/get_all_documents
 /events/update_document

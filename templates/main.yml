@@ -33,6 +33,27 @@ Resources:
           Properties:
             Path: /document
             Method: post
+  GetAllDocumentsFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ../bin/get_all_documents.zip
+      FunctionName: !Sub "${ProjectName}-get_all_documents"
+      Handler: bootstrap
+      Runtime: provided.al2
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref DocumentTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DocumentTable
+      Events:
+        GetAllDocuments:
+          Type: Api
+          Properties:
+            Path: /document
+            Method: get
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Metadata:

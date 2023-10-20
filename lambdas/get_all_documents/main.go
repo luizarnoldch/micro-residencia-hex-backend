@@ -9,7 +9,6 @@ import (
 	"log"
 
 	"main/src/application"
-	"main/src/domain"
 	"main/src/infrastructure"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -28,16 +27,9 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			StatusCode: 500}, nil
 	}
 
-	var documentoRequest domain.DocumentoRequest
-
-	if err := json.Unmarshal([]byte(request.Body), &documentoRequest); err != nil {
-		log.Println("Error parsing request body as JSON.")
-		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err)}, nil
-	}
-
 	dynamoService := application.NewDocumentoServiceDynamo(dynamoClient, TABLE_NAME, ctx)
 
-	response, err := dynamoService.CreateDocument(documentoRequest)
+	response, err := dynamoService.GetAllDocuments()
 	if err != nil {
 		log.Printf("error creating documento in database :%s\n", err)
 		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 400}, nil
@@ -52,7 +44,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	return events.APIGatewayProxyResponse{
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		Body:       string(responseBody),
-		StatusCode: response.Status,
+		StatusCode: 200,
 	}, nil
 }
 
