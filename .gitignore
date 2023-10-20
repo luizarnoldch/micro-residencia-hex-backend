@@ -10,11 +10,9 @@ cmd
 /lambdas/delete_document
 /lambdas/get_all_documents
 /lambdas/update_document
-/lambdas/hello
 
 # Events
 #/events/create_document
 /events/delete_document
 /events/get_all_documents
 /events/update_document
-/events/hello

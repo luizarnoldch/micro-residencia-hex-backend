@@ -12,21 +12,6 @@ Parameters:
     Description: Stage of API GATEWAY
     Default: dev
 Resources:
-  DocumentoApiGateway:
-    Type: AWS::Serverless::Api
-    Properties:
-      Name: !Sub "${ProjectName}-api-${Stage}"
-      StageName: !Ref Stage
-      OpenApiVersion: '2.0'
-      Description: API supporting the application
-      TracingEnabled: true
-      Variables:
-        LAMBDA_ALIAS: !Ref Stage
-      Cors:
-        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-        AllowMethods: "'DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT'"
-        AllowOrigin: "'*'"
-
   CreateDocumentFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -44,12 +29,25 @@ Resources:
             TableName: !Ref DocumentTable
       Events:
         CreateDocument:
-          Type: Api 
+          Type: Api
           Properties:
             Path: /document
             Method: post
-            RestApiId: !Ref DocumentoApiGateway
-  
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ../bin/hello.zip
+      FunctionName: !Sub "${ProjectName}-hello"
+      Handler: bootstrap
+      Runtime: provided.al2
+      Events:
+        HelloWorld:
+          Type: Api 
+          Properties:
+            Path: /
+            Method: get
   DocumentTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
@@ -57,11 +55,10 @@ Resources:
       PrimaryKey:
         Name: "id_documento"
         Type: String
-
 Outputs:
   DocumentTableName:
     Description: Nombre de la tabla de documentos en DynamoDB
     Value: !Ref DocumentTable
   DocumentoApi:
     Description: "API Gateway endpoint URL para documentos"
-    Value: !Sub "https://${DocumentoApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
