@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"log"
 	"main/src/domain"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -18,6 +19,9 @@ type DocumentoServiceDynamo struct {
 
 func (dynamo DocumentoServiceDynamo) CreateDocument(req domain.DocumentoRequest) (domain.DocumentoSimpleResponse, error) {
     reqToDoc := req.ToDocumento()
+
+	log.Println(reqToDoc)
+
     item, err := attributevalue.MarshalMap(reqToDoc)
     if err != nil {
         return domain.DocumentoSimpleResponse{
@@ -54,6 +58,8 @@ func (dynamo DocumentoServiceDynamo) GetAllDocuments() ([]domain.DocumentoRespon
 	if err != nil {
 		return nil, err
 	}
+
+	log.Println(response)
 
 	var documentos []domain.DocumentoResponse
 	err = attributevalue.UnmarshalListOfMaps(response.Items, &documentos)

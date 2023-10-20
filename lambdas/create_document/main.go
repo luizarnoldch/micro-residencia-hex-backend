@@ -25,14 +25,14 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	if err != nil {
 		log.Fatalln("Failed to get dynamodb client")
 		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("Failed to get dynamodb client %s", err),
-			StatusCode: 500}, nil
+			StatusCode: 504}, nil
 	}
 
 	var documentoRequest domain.DocumentoRequest
 
 	if err := json.Unmarshal([]byte(request.Body), &documentoRequest); err != nil {
 		log.Println("Error parsing request body as JSON.")
-		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err)}, nil
+		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 502}, nil
 	}
 
 	dynamoService := application.NewDocumentoServiceDynamo(dynamoClient, TABLE_NAME, ctx)
