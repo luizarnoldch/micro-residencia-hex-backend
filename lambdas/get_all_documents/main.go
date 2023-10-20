@@ -41,8 +41,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 500}, nil
 	}
 
+	headers := map[string]string{
+		"Access-Control-Allow-Origin": "*",
+		"Content-Type": "application/json",
+	}
+
 	return events.APIGatewayProxyResponse{
-		Headers:    map[string]string{"Content-Type": "application/json"},
+		Headers:    headers,
 		Body:       string(responseBody),
 		StatusCode: 200,
 	}, nil

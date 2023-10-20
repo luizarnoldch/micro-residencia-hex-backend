@@ -8,10 +8,15 @@ import (
 )
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	
+	headers := map[string]string{
+		"Access-Control-Allow-Origin": "*",
+		"Content-Type": "application/json",
+	}
 
 	response := events.APIGatewayProxyResponse{
 		StatusCode: 200,
-		Headers:    map[string]string{"Content-Type": "application/json"},
+		Headers:    headers,
 		Body:       "Hello World",
 	}
 	return response, nil
