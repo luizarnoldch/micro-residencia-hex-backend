@@ -49,8 +49,15 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref DocumentTable
             Actions:
-              - dynaodb:ExecuteStatement
-              - dynaodb:PartiQLSelect
+              - dynamodb:PartiQLSelect
+              - dynamodb:GetItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
       Events:
         GetAllDocuments:
           Type: Api
