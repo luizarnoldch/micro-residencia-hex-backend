@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"main/src/domain"
-	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -18,32 +17,32 @@ type DocumentoServiceDynamo struct {
 }
 
 func (dynamo DocumentoServiceDynamo) CreateDocument(req domain.DocumentoRequest) (domain.DocumentoSimpleResponse, error) {
-    reqToDoc := req.ToDocumento()
-    item, err := attributevalue.MarshalMap(reqToDoc)
-    if err != nil {
-        return domain.DocumentoSimpleResponse{
-            Status:  504,
-            Message: err.Error(),
-        }, err
-    }
+	reqToDoc := req.ToDocumento()
+	item, err := attributevalue.MarshalMap(reqToDoc)
+	if err != nil {
+		return domain.DocumentoSimpleResponse{
+			Status:  504,
+			Message: err.Error(),
+		}, err
+	}
 
-    input := &dynamodb.PutItemInput{
-        TableName: aws.String(dynamo.table),
-        Item:      item,
-    }
+	input := &dynamodb.PutItemInput{
+		TableName: aws.String(dynamo.table),
+		Item:      item,
+	}
 
-    _, err = dynamo.client.PutItem(dynamo.ctx, input)
-    if err != nil {
-        return domain.DocumentoSimpleResponse{
-            Status:  503,
-            Message: err.Error(),
-        }, err
-    }
+	_, err = dynamo.client.PutItem(dynamo.ctx, input)
+	if err != nil {
+		return domain.DocumentoSimpleResponse{
+			Status:  503,
+			Message: err.Error(),
+		}, err
+	}
 
-    return domain.DocumentoSimpleResponse{
-        Status:  200,
-        Message: "documento guardado",
-    }, nil
+	return domain.DocumentoSimpleResponse{
+		Status:  200,
+		Message: "documento guardado",
+	}, nil
 }
 
 func (dynamo DocumentoServiceDynamo) GetAllDocuments() ([]domain.DocumentoResponse, error) {
@@ -63,16 +62,10 @@ func (dynamo DocumentoServiceDynamo) GetAllDocuments() ([]domain.DocumentoRespon
 	}
 
 	var documentosResponse []domain.DocumentoResponse
-	var wg sync.WaitGroup
 
 	for _, documento := range documentos {
-		wg.Add(1) 
-		go func(doc domain.Documento) {
-			defer wg.Done()
-			documentosResponse = append(documentosResponse, doc.ToDocumentoResponse())
-		}(documento)
+		documentosResponse = append(documentosResponse, documento.ToDocumentoResponse())
 	}
-	wg.Wait()
 
 	return documentosResponse, nil
 }
