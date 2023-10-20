@@ -10,7 +10,7 @@ Parameters:
   Stage:
     Type: String
     Description: Stage of API GATEWAY
-    Default: dev
+    Default: Prod
 Resources:
   CreateDocumentFunction:
     Type: AWS::Serverless::Function

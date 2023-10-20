@@ -43,12 +43,10 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 400}, nil
 	}
 
-	log.Println(response)
-
 	return events.APIGatewayProxyResponse{
 		Headers:    map[string]string{"Content-Type": "application/json"},
-		Body:       "Hello World",
-		StatusCode: 200,
+		Body:       response.Message,
+		StatusCode: response.Status,
 	}, nil
 }
 
