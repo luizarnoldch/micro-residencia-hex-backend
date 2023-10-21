@@ -11,6 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.40.2
 	github.com/google/uuid v1.3.1
 	github.com/grokify/go-awslambda v0.2.0
+	github.com/olahol/go-imageupload v1.0.1
 )
 
 require (
@@ -32,4 +33,5 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.23.2 // indirect
 	github.com/aws/smithy-go v1.15.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 )

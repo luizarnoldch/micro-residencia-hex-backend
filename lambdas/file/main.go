@@ -3,18 +3,20 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/json"
-	"io"
+	// "encoding/json"
+	// "io"
 	"log"
 	"os"
-	"path/filepath"
+	// "path/filepath"
+	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/grokify/go-awslambda"
+	// "github.com/grokify/go-awslambda"
+	"github.com/olahol/go-imageupload"
 )
 
 type CustomStruct struct {
@@ -28,6 +30,26 @@ var (
 	BUCKET_KEY  = os.Getenv("BUCKET_KEY")
 )
 
+func createHTTPRequest(request events.APIGatewayProxyRequest) (*http.Request, error) {
+	// Crear un objeto http.Request usando los datos del evento APIGatewayProxyRequest
+	httpRequest, err := http.NewRequest(request.HTTPMethod, request.Path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Configurar encabezados, cuerpo, etc. según sea necesario
+	for key, value := range request.Headers {
+		httpRequest.Header.Set(key, value)
+	}
+
+	// Configurar el cuerpo si existe
+	if request.Body != "" {
+		httpRequest.Body = http.NoBody
+	}
+
+	return httpRequest, nil
+}
+
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	cfg, err := config.LoadDefaultConfig(ctx)
@@ -40,27 +62,42 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	response := events.APIGatewayProxyResponse{}
 
-	r, err := awslambda.NewReaderMultipart(request)
+	httpRequest, err := createHTTPRequest(request)
 	if err != nil {
-		return response, err
+		return events.APIGatewayProxyResponse{StatusCode: 500}, err
 	}
-	part, err := r.NextPart()
+
+	// r, err := awslambda.NewReaderMultipart(request)
+	// if err != nil {
+	// 	return response, err
+	// }
+	// part, err := r.NextPart()
+	// if err != nil {
+	// 	return response, err
+	// }
+
+	// content, err := io.ReadAll(part)
+	// if err != nil {
+	// 	return response, err
+	// }
+
+	img, err := imageupload.Process(httpRequest,"file")
+
 	if err != nil {
 		return response, err
 	}
 
-	content, err := io.ReadAll(part)
-	if err != nil {
-		return response, err
-	}
-	buffer := bytes.NewReader(content)
-	key := BUCKET_KEY + part.FileName()
+
+	buffer := bytes.NewReader(img.Data)
+	key := BUCKET_KEY + img.Filename
 
 	input := &s3.PutObjectInput{
 		Bucket:      aws.String(BUCKET_NAME),
 		Key:         aws.String(key),
 		Body:        buffer,
 	}
+
+	
 
 	output, err := s3client.PutObject(ctx, input)
 	if err != nil {
@@ -69,15 +106,15 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	log.Println(output)
 
-	custom := CustomStruct{
-		Content:       string(content),
-		FileName:      part.FileName(),
-		FileExtension: filepath.Ext(part.FileName()),
-	}
-	customBytes, err := json.Marshal(custom)
-	if err != nil {
-		return response, err
-	}
+	// custom := CustomStruct{
+	// 	Content:       string(content),
+	// 	FileName:      part.FileName(),
+	// 	FileExtension: filepath.Ext(part.FileName()),
+	// }
+	// customBytes, err := json.Marshal(custom)
+	// if err != nil {
+	// 	return response, err
+	// }
 
 	headers := map[string]string{
 		"Access-Control-Allow-Origin":  "*",
@@ -89,7 +126,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	response = events.APIGatewayProxyResponse{
 		StatusCode: 200,
 		Headers:    headers,
-		Body:       string(customBytes)}
+		Body:       "file upload"}
 	return response, nil
 }
 
