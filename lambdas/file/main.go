@@ -1,30 +1,52 @@
-package main
+package lambdas
 
 import (
 	"context"
-	"fmt"
-	"log"
+	"encoding/json"
+	"io"
+	"path/filepath"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/grokify/go-awslambda"
 )
 
-func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+type customStruct struct {
+	Content       string
+	FileName      string
+	FileExtension string
+}
 
-	fmt.Print(request)
-	log.Print(request)
+func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	res := events.APIGatewayProxyResponse{}
+	r, err := awslambda.NewReaderMultipart(req)
+	if err != nil {
+		return res, err
+	}
+	part, err := r.NextPart()
+	if err != nil {
+		return res, err
+	}
+	content, err := io.ReadAll(part)
+	if err != nil {
+		return res, err
+	}
+	custom := customStruct{
+		Content:       string(content),
+		FileName:      part.FileName(),
+		FileExtension: filepath.Ext(part.FileName())}
 
-	headers := map[string]string{
-		"Access-Control-Allow-Origin": "*",
-		"Content-Type":                "application/json",
+	customBytes, err := json.Marshal(custom)
+	if err != nil {
+		return res, err
 	}
 
-	response := events.APIGatewayProxyResponse{
+	res = events.APIGatewayProxyResponse{
 		StatusCode: 200,
-		Headers:    headers,
-		Body:       "File Response",
-	}
-	return response, nil
+		Headers: map[string]string{
+			"Content-Type": "application/json"},
+		Body: string(customBytes)}
+	return res, nil
 }
 
 func main() {
