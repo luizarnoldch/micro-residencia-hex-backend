@@ -22,7 +22,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	response := events.APIGatewayProxyResponse{
 		StatusCode: 200,
 		Headers:    headers,
-		Body:       "Hello World",
+		Body:       "File Response",
 	}
 	return response, nil
 }
