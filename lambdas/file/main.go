@@ -54,13 +54,14 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 	buffer := bytes.NewBuffer(content)
 
-	input := s3.PutObjectInput{
-		Bucket: aws.String(BUCKET_NAME),
-		Key:    aws.String(BUCKET_KEY + part.FileName()),
-		Body:   buffer,
+	input := &s3.PutObjectInput{
+		Bucket:      aws.String(BUCKET_NAME),
+		Key:         aws.String(BUCKET_KEY + part.FileName()),
+		Body:        buffer,
+		ContentType: aws.String("image/jpeg"),
 	}
 
-	output, err := s3client.PutObject(ctx, &input)
+	output, err := s3client.PutObject(ctx, input)
 	if err != nil {
 		return response, err
 	}
