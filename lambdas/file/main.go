@@ -11,15 +11,15 @@ import (
 	"github.com/grokify/go-awslambda"
 )
 
-type customStruct struct {
+type CustomStruct struct {
 	Content       string
 	FileName      string
 	FileExtension string
 }
 
-func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	res := events.APIGatewayProxyResponse{}
-	r, err := awslambda.NewReaderMultipart(req)
+	r, err := awslambda.NewReaderMultipart(request)
 	if err != nil {
 		return res, err
 	}
@@ -31,7 +31,7 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 	if err != nil {
 		return res, err
 	}
-	custom := customStruct{
+	custom := CustomStruct{
 		Content:       string(content),
 		FileName:      part.FileName(),
 		FileExtension: filepath.Ext(part.FileName())}
@@ -43,13 +43,13 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 
 	headers := map[string]string{
 		"Access-Control-Allow-Origin": "*",
-		"Content-Type": "application/json",
+		"Content-Type":                "application/json",
 	}
 
 	res = events.APIGatewayProxyResponse{
 		StatusCode: 200,
-		Headers: headers,
-		Body: string(customBytes)}
+		Headers:    headers,
+		Body:       string(customBytes)}
 	return res, nil
 }
 
