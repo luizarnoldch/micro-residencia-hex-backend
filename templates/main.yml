@@ -92,6 +92,22 @@ Resources:
             Path: /
             Method: get
             RestApiId: !Ref ApiGatewayApi
+  FileFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ../bin/file.zip
+      FunctionName: !Sub "${ProjectName}-file"
+      Handler: bootstrap
+      Runtime: provided.al2
+      Events:
+        File:
+          Type: Api 
+          Properties:
+            Path: /
+            Method: post
+            RestApiId: !Ref ApiGatewayApi
   DocumentTable:
     Type: 'AWS::DynamoDB::Table'
     Properties:
