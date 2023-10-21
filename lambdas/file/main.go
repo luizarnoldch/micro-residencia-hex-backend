@@ -33,7 +33,7 @@ var (
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	fmt.Println(request)
+	fmt.Println(request.Body)
 	// cfg, err := config.LoadDefaultConfig(ctx)
 
 	// if err != nil {
