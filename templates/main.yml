@@ -105,6 +105,9 @@ Resources:
         Variables:
           BUCKET_NAME: !Ref documentbucket
           BUCKET_KEY: documentos
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref documentbucket
       Events:
         File:
           Type: Api 
@@ -141,7 +144,6 @@ Resources:
               - PUT
             AllowedOrigins:
               - '*'
-
 Outputs:
   DocumentTableName:
     Description: Nombre de la tabla de documentos en DynamoDB
