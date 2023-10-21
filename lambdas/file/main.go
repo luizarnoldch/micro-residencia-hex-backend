@@ -17,7 +17,7 @@ type CustomStruct struct {
 	FileExtension string
 }
 
-func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	res := events.APIGatewayProxyResponse{}
 	r, err := awslambda.NewReaderMultipart(request)
 	if err != nil {
@@ -52,6 +52,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		Body:       string(customBytes)}
 	return res, nil
 }
+
 func main() {
-	lambda.Start(handler)
+	lambda.Start(Handler)
 }
