@@ -56,7 +56,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	input := s3.PutObjectInput{
 		Bucket: aws.String(BUCKET_NAME),
-		Key:    aws.String(BUCKET_KEY),
+		Key:    aws.String(BUCKET_KEY + part.FileName() + filepath.Ext(part.FileName())),
 		Body:   buffer,
 	}
 
