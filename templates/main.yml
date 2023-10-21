@@ -132,10 +132,13 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: "documentos-pdf"
-      AccessControl: PublicRead
+      PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
       OwnershipControls:
         Rules:
-          - ObjectOwnership: BucketOwnerEnforced
+          - ObjectOwnership: ObjectWriter
+      WebsiteConfiguration:
+        IndexDocument: index.html
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
@@ -155,10 +158,14 @@ Resources:
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Effect: Allow
-            Action: "s3:GetObject"
-            Resource: !Sub "arn:aws:s3:::${DocumentBucket}/*"
-            Principal: "*"
+          - Action: 's3:GetObject'
+            Effect: 'Allow'
+            Principal: '*'
+            Resource: !Sub '${DocumentBucket.Arn}/*'
+          - Action: 's3:ListBucket'
+            Effect: 'Allow'
+            Principal: '*'
+            Resource: !GetAtt DocumentBucket.Arn
 Outputs:
   DocumentTableName:
     Description: Nombre de la tabla de documentos en DynamoDB
