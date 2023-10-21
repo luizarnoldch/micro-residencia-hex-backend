@@ -128,17 +128,17 @@ Resources:
   documentbucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "documentos-${ProjectName}-pdf"
+      BucketName: !Sub "documentos-pdf"
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
               - '*'
             AllowedMethods:
               - GET
-                DELETE
-                HEAD
-                POST
-                PUT
+              - DELETE
+              - HEAD
+              - POST
+              - PUT
             AllowedOrigins:
               - '*'
 
