@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -24,7 +25,7 @@ type CustomStruct struct {
 
 var (
 	BUCKET_NAME = os.Getenv("BUCKET_NAME")
-	BUCKET_KEY = os.Getenv("BUCKET_KEY")
+	BUCKET_KEY  = os.Getenv("BUCKET_KEY")
 )
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -48,11 +49,17 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		return response, err
 	}
 
+	content, err := io.ReadAll(part)
+	if err != nil {
+		return response, err
+	}
+	buffer := bytes.NewBuffer(content)
+
 	input := s3.PutObjectInput{
-        Bucket: aws.String(BUCKET_NAME),
-        Key:    aws.String(BUCKET_KEY),
-        Body:   part,
-    }
+		Bucket: aws.String(BUCKET_NAME),
+		Key:    aws.String(BUCKET_KEY),
+		Body:   buffer,
+	}
 
 	output, err := s3client.PutObject(ctx, &input)
 	if err != nil {
@@ -60,12 +67,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	log.Println(output)
-	
 
-	content, err := io.ReadAll(part)
-	if err != nil {
-		return response, err
-	}
 	custom := CustomStruct{
 		Content:       string(content),
 		FileName:      part.FileName(),
