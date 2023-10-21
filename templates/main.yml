@@ -128,10 +128,11 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
-  DocumentsS3:
+  DocumentBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "documentos-pdf"
+      BucketName: "documentos-pdf"
+      AccessControl: PublicRead
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
@@ -147,14 +148,14 @@ Resources:
   DocumentBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref DocumentsS3
+      Bucket: !Ref DocumentBucket
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
-            Action: 's3:GetObject'
-            Resource: !Sub 'arn:aws:s3:::${DocumentsS3}/*'
-            Principal: '*'
+            Action: "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${DocumentBucket}/*"
+            Principal: "*"
 Outputs:
   DocumentTableName:
     Description: Nombre de la tabla de documentos en DynamoDB
