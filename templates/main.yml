@@ -103,7 +103,7 @@ Resources:
       Runtime: provided.al2
       Environment:
         Variables:
-          BUCKET_NAME: !Ref DocumentBucket
+          BUCKET_NAME: !Ref documentbucket
           BUCKET_KEY: documentos
       Events:
         File:
