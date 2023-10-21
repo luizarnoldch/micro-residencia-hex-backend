@@ -125,7 +125,7 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
-  DocumentBucket:
+  documentbucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "documentos-${ProjectName}-pdf"
