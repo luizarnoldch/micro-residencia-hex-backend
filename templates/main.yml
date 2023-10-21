@@ -103,11 +103,11 @@ Resources:
       Runtime: provided.al2
       Environment:
         Variables:
-          BUCKET_NAME: !Ref documentbucket
+          BUCKET_NAME: !Ref DocumentsS3
           BUCKET_KEY: !Sub "documentos/"
       Policies:
         - S3WritePolicy:
-            BucketName: !Ref documentbucket
+            BucketName: !Ref DocumentsS3
       Events:
         File:
           Type: Api 
@@ -128,11 +128,10 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
-  documentbucket:
+  DocumentsS3:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "documentos-pdf"
-      AccessControl: PublicRead
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
@@ -145,6 +144,22 @@ Resources:
               - PUT
             AllowedOrigins:
               - '*'
+  DocumentBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DocumentsS3
+      PolicyDocument:
+        Statement:
+          - Action:
+              - "s3:GetObject"
+            Effect: "Allow"
+            Resource:
+              Fn::Join:
+                - ""
+                - - "arn:aws:s3:::"
+                  - Ref: "DocumentsS3"
+                  - "/*"
+            Principal: "*"
 Outputs:
   DocumentTableName:
     Description: Nombre de la tabla de documentos en DynamoDB
