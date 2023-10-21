@@ -30,8 +30,8 @@ var (
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	cfg, err := config.LoadDefaultConfig(context.TODO())
-	
+	cfg, err := config.LoadDefaultConfig(ctx)
+
 	if err != nil {
 		log.Fatalf("unable to load SDK config, %v", err)
 	}
