@@ -43,8 +43,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	headers := map[string]string{
 		"Access-Control-Allow-Origin": "*",
-		"Content-Type":                "multipart/form-data",
-	}	
+		"Content-Type":                "application/json",
+	}
 
 	res = events.APIGatewayProxyResponse{
 		StatusCode: 200,
@@ -52,7 +52,6 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		Body:       string(customBytes)}
 	return res, nil
 }
-
 func main() {
 	lambda.Start(handler)
 }

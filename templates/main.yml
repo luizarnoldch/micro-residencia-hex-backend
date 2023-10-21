@@ -110,7 +110,6 @@ Resources:
             Path: /
             Method: post
             RestApiId: !Ref ApiGatewayApi
-      
   DocumentTable:
     Type: 'AWS::DynamoDB::Table'
     Properties:
