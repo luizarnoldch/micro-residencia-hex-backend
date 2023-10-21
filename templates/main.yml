@@ -149,17 +149,12 @@ Resources:
     Properties:
       Bucket: !Ref DocumentsS3
       PolicyDocument:
+        Version: '2012-10-17'
         Statement:
-          - Action:
-              - "s3:GetObject"
-            Effect: "Allow"
-            Resource:
-              Fn::Join:
-                - ""
-                - - "arn:aws:s3:::"
-                  - Ref: "DocumentsS3"
-                  - "/*"
-            Principal: "*"
+          - Effect: Allow
+            Action: 's3:GetObject'
+            Resource: !Sub 'arn:aws:s3:::${DocumentsS3}/*'
+            Principal: '*'
 Outputs:
   DocumentTableName:
     Description: Nombre de la tabla de documentos en DynamoDB
