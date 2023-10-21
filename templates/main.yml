@@ -24,7 +24,7 @@ Resources:
         LAMBDA_ALIAS: !Ref Stage
       Cors:
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-        AllowMethods: "'DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT'"
+        AllowMethods: "'DELETE, GET, HEAD, POST, PUT'"
         AllowOrigin: "'*'"
   CreateDocumentFunction:
     Type: AWS::Serverless::Function
@@ -101,6 +101,10 @@ Resources:
       FunctionName: !Sub "${ProjectName}-file"
       Handler: bootstrap
       Runtime: provided.al2
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref DocumentBucket
+          BUCKET_KEY: documentos
       Events:
         File:
           Type: Api 
@@ -121,6 +125,23 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
+  DocumentBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ProjectName}-documentos-pdf"
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+                DELETE
+                HEAD
+                POST
+                PUT
+            AllowedOrigins:
+              - '*'
+
 Outputs:
   DocumentTableName:
     Description: Nombre de la tabla de documentos en DynamoDB

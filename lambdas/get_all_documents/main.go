@@ -43,7 +43,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	headers := map[string]string{
 		"Access-Control-Allow-Origin": "*",
-		"Access-Control-Allow-Methods": "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
+		"Access-Control-Allow-Methods": "DELETE,GET,HEAD,POST,PUT",
 		"Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
 		"Content-Type": "application/json",
 	}
