@@ -133,6 +133,9 @@ Resources:
     Properties:
       BucketName: "documentos-pdf"
       AccessControl: PublicRead
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
