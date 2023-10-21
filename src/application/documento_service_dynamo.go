@@ -144,7 +144,7 @@ func (dynamo DocumentoServiceDynamo) DeleteDocument(id string) (domain.Documento
 
 	return domain.DocumentoSimpleResponse{
 		Status:  200,
-		Message: "documento actualizado",
+		Message: "documento eliminado",
 	}, nil
 }
 
