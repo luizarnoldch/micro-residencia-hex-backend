@@ -6,7 +6,7 @@ Parameters:
   ProjectName:
     Type: String
     Description: Proyecto Residentes para Tendencias de Arquitectura de Software
-    Default: Residentes
+    Default: residentes
   Stage:
     Type: String
     Description: Stage of API GATEWAY
