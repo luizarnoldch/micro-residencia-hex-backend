@@ -39,7 +39,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	s3client := s3.NewFromConfig(cfg)
 
 	response := events.APIGatewayProxyResponse{}
-	
+
 	r, err := awslambda.NewReaderMultipart(request)
 	if err != nil {
 		return response, err
@@ -60,7 +60,6 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		Bucket:      aws.String(BUCKET_NAME),
 		Key:         aws.String(key),
 		Body:        buffer,
-		ContentType: aws.String("image/jpg"),
 	}
 
 	output, err := s3client.PutObject(ctx, input)
