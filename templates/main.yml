@@ -133,8 +133,6 @@ Resources:
     Properties:
       BucketName: !Sub "documentos-pdf"
       AccessControl: PublicRead
-      WebsiteConfiguration:
-        IndexDocument: index.html
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
