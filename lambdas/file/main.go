@@ -1,21 +1,25 @@
 package main
 
 import (
-	// "bytes"
+	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
+
 	// // "encoding/json"
-	// // "io"
-	// "log"
+	// "io"
+	"log"
 	"os"
+	"math/rand"
+
 	// // "path/filepath"
 	// "net/http"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	// "github.com/aws/aws-sdk-go-v2/aws"
-	// "github.com/aws/aws-sdk-go-v2/config"
-	// "github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	// // "github.com/grokify/go-awslambda"
 	// "github.com/olahol/go-imageupload"
 )
@@ -34,15 +38,22 @@ var (
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	fmt.Println(request.Body)
-	// cfg, err := config.LoadDefaultConfig(ctx)
+	pdfData := request.Body
 
-	// if err != nil {
-	// 	log.Fatalf("unable to load SDK config, %v", err)
-	// }
+	response := events.APIGatewayProxyResponse{}
 
-	// s3client := s3.NewFromConfig(cfg)
+	pdfBytes, err := base64.StdEncoding.DecodeString(pdfData)
+	if err != nil {
+		log.Printf("Error al decodificar el archivo base64: %v", err)
+		return events.APIGatewayProxyResponse{StatusCode: 500, Body: "Error al procesar el archivo"}, nil
+	}
+	cfg, err := config.LoadDefaultConfig(ctx)
 
-	// response := events.APIGatewayProxyResponse{}
+	if err != nil {
+		log.Fatalf("unable to load SDK config, %v", err)
+	}
+
+	s3client := s3.NewFromConfig(cfg)
 
 	// httpRequest, err := createHTTPRequest(request)
 	// if err != nil {
@@ -70,23 +81,23 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	// }
 
 
-	// buffer := bytes.NewReader(img.Data)
-	// key := BUCKET_KEY + img.Filename
+	// Generar un número aleatorio entre 1 y 100
+	numeroAleatorio := rand.Intn(100) + 1
 
-	// input := &s3.PutObjectInput{
-	// 	Bucket:      aws.String(BUCKET_NAME),
-	// 	Key:         aws.String(key),
-	// 	Body:        buffer,
-	// }
+	key := BUCKET_KEY + string(numeroAleatorio)
 
-	
+	input := &s3.PutObjectInput{
+		Bucket: aws.String(BUCKET_NAME),
+		Key:    aws.String(key),
+		Body:   bytes.NewReader(pdfBytes),
+	}
 
-	// output, err := s3client.PutObject(ctx, input)
-	// if err != nil {
-	// 	return response, err
-	// }
+	output, err := s3client.PutObject(ctx, input)
+	if err != nil {
+		return response, err
+	}
 
-	// log.Println(output)
+	log.Println(output)
 
 	// custom := CustomStruct{
 	// 	Content:       string(content),
@@ -105,7 +116,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		"Content-Type":                 "application/json",
 	}
 
-	response := events.APIGatewayProxyResponse{
+	response = events.APIGatewayProxyResponse{
 		StatusCode: 200,
 		Headers:    headers,
 		Body:       "file upload"}
