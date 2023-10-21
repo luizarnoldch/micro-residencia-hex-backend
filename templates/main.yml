@@ -97,8 +97,8 @@ Resources:
     Metadata:
       BuildMethod: go1.x
     Properties:
-      CodeUri: ../bin/file.zip
-      FunctionName: !Sub "${ProjectName}-file"
+      CodeUri: ../bin/upload.zip
+      FunctionName: !Sub "${ProjectName}-upload"
       Handler: bootstrap
       Runtime: provided.al2
       Timeout: 900
