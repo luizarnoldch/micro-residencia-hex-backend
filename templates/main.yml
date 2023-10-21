@@ -101,6 +101,8 @@ Resources:
       FunctionName: !Sub "${ProjectName}-file"
       Handler: bootstrap
       Runtime: provided.al2
+      Timeout: 900
+      MemorySize: 1024
       Events:
         File:
           Type: Api 
@@ -108,6 +110,7 @@ Resources:
             Path: /
             Method: post
             RestApiId: !Ref ApiGatewayApi
+      
   DocumentTable:
     Type: 'AWS::DynamoDB::Table'
     Properties:
