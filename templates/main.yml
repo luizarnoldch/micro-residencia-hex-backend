@@ -147,6 +147,8 @@ Resources:
       FunctionName: !Sub "${ProjectName}-file"
       Handler: bootstrap
       Runtime: provided.al2
+      Timeout: 900
+      MemorySize: 1024
       Environment:
         Variables:
           BUCKET_NAME: !Ref DocumentBucket
