@@ -60,7 +60,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	contentDisposition := "attachment"
-	if strings.HasSuffix(objectKey, ".jpg") || strings.HasSuffix(objectKey, ".jpeg") {
+	if strings.HasSuffix(objectKey, ".jpg") || strings.HasSuffix(objectKey, ".jpeg") || strings.HasSuffix(objectKey, ".pdf") {
 		contentDisposition = "inline"
 	}
 
