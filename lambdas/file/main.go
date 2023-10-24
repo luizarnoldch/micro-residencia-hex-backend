@@ -3,15 +3,15 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
+	"mime"
+	"mime/multipart"
 	"net/http"
 
+	"io"
 	"log"
 	"os"
 	"strings"
 
-	// // "path/filepath"
-	// "net/http"
 	"github.com/google/uuid"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -19,8 +19,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	// // "github.com/grokify/go-awslambda"
-	// "github.com/olahol/go-imageupload"
 )
 
 type CustomStruct struct {
@@ -43,8 +41,9 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		return events.APIGatewayProxyResponse{StatusCode: http.StatusBadRequest}, nil
 	}
 
-	fileData, err := base64.StdEncoding.DecodeString(request.Body)
+	mediaType, params, err := mime.ParseMediaType(contentType)
 	if err != nil {
+		log.Println("Error parsing media type:", err)
 		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 	}
 
@@ -54,95 +53,47 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		log.Fatalf("unable to load SDK config, %v", err)
 	}
 
-	s3client := s3.NewFromConfig(cfg)
+	if strings.HasPrefix(mediaType, "multipart/") {
+		mr := multipart.NewReader(strings.NewReader(request.Body), params["boundary"])
+		for {
+			part, err := mr.NextPart()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Println("Error reading multipart section:", err)
+				return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+			}
+			if part.FileName() != "" {
+				// Here, we've got the file data in part.
+				// Use `io.ReadAll(part)` or copy to another buffer to get the file contents.
+				fileData, err := io.ReadAll(part)
+				if err != nil {
+					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+				}
 
-	newUUID := uuid.NewString()
+				s3client := s3.NewFromConfig(cfg)
 
-	key := BUCKET_KEY + newUUID
+				newUUID := uuid.NewString()
 
-	input := &s3.PutObjectInput{
-		Bucket: aws.String(BUCKET_NAME),
-		Key:    aws.String(key),
-		Body:   bytes.NewReader(fileData),
+				key := BUCKET_KEY + newUUID
+
+				input := &s3.PutObjectInput{
+					Bucket: aws.String(BUCKET_NAME),
+					Key:    aws.String(key),
+					Body:   bytes.NewReader(fileData),
+				}
+
+				output, err := s3client.PutObject(ctx, input)
+				if err != nil {
+					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+				}
+
+				log.Println(output)
+
+			}
+		}
 	}
-
-	output, err := s3client.PutObject(ctx, input)
-	if err != nil {
-		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
-	}
-
-	log.Println(output)
-
-	// fmt.Println(request.Body)
-	// pdfData := request.Body
-
-	// response := events.APIGatewayProxyResponse{}
-
-	// pdfBytes, err := base64.StdEncoding.DecodeString(pdfData)
-	// if err != nil {
-	// 	log.Printf("Error al decodificar el archivo base64: %v", err)
-	// 	return events.APIGatewayProxyResponse{StatusCode: 500, Body: "Error al procesar el archivo"}, nil
-	// }
-	// cfg, err := config.LoadDefaultConfig(ctx)
-
-	// if err != nil {
-	// 	log.Fatalf("unable to load SDK config, %v", err)
-	// }
-
-	// s3client := s3.NewFromConfig(cfg)
-
-	// httpRequest, err := createHTTPRequest(request)
-	// if err != nil {
-	// 	return events.APIGatewayProxyResponse{StatusCode: 500}, err
-	// }
-
-	// // r, err := awslambda.NewReaderMultipart(request)
-	// // if err != nil {
-	// // 	return response, err
-	// // }
-	// // part, err := r.NextPart()
-	// // if err != nil {
-	// // 	return response, err
-	// // }
-
-	// // content, err := io.ReadAll(part)
-	// // if err != nil {
-	// // 	return response, err
-	// // }
-
-	// img, err := imageupload.Process(httpRequest,"file")
-
-	// if err != nil {
-	// 	return response, err
-	// }
-
-	// Generar un número aleatorio entre 1 y 100
-	// numeroAleatorio := rand.Intn(100) + 1
-
-	// key := BUCKET_KEY + string(numeroAleatorio)
-
-	// input := &s3.PutObjectInput{
-	// 	Bucket: aws.String(BUCKET_NAME),
-	// 	Key:    aws.String(key),
-	// 	Body:   bytes.NewReader(pdfBytes),
-	// }
-
-	// output, err := s3client.PutObject(ctx, input)
-	// if err != nil {
-	// 	return response, err
-	// }
-
-	// log.Println(output)
-
-	// custom := CustomStruct{
-	// 	Content:       string(content),
-	// 	FileName:      part.FileName(),
-	// 	FileExtension: filepath.Ext(part.FileName()),
-	// }
-	// customBytes, err := json.Marshal(custom)
-	// if err != nil {
-	// 	return response, err
-	// }
 
 	headers := map[string]string{
 		"Access-Control-Allow-Origin":  "*",
