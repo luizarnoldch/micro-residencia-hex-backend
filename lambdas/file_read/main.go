@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"io"
 	"log"
 	"net/http"
@@ -43,12 +44,15 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 	defer object.Body.Close()
 
-	// Read the object's content into a byte slice using io.ReadAll
+	// Read the object's content into a byte slice
 	data, err := io.ReadAll(object.Body)
 	if err != nil {
 		log.Println("Error reading object data:", err)
 		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 	}
+
+	// Convert the byte slice to a base64 encoded string
+	encodedString := base64.StdEncoding.EncodeToString(data)
 
 	contentType := "application/octet-stream"
 	if object.ContentType != nil {
@@ -56,13 +60,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	contentDisposition := "attachment"
-	if strings.HasSuffix(objectKey, ".jpg") || strings.HasSuffix(objectKey, ".jpeg") || strings.HasSuffix(objectKey, ".pdf") {
+	if strings.HasSuffix(objectKey, ".jpg") || strings.HasSuffix(objectKey, ".jpeg") {
 		contentDisposition = "inline"
 	}
 
 	headers := map[string]string{
-		"Content-Type":        contentType,
-		"Content-Disposition": contentDisposition,
+		"Content-Type":                 contentType,
+		"Content-Disposition":          contentDisposition,
 		"Access-Control-Allow-Origin":  "*",
 		"Access-Control-Allow-Methods": "DELETE,GET,HEAD,POST,PUT",
 		"Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
@@ -71,8 +75,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	return events.APIGatewayProxyResponse{
 		StatusCode:      200,
 		Headers:         headers,
-		IsBase64Encoded: false,
-		Body:            string(data),
+		IsBase64Encoded: true,
+		Body:            encodedString, // set the base64 encoded string as the body
 	}, nil
 }
 
