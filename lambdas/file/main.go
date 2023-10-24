@@ -3,17 +3,16 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
+	"io"
+	"log"
 	"mime"
 	"mime/multipart"
 	"net/http"
-
-	"io"
-	"log"
 	"os"
 	"strings"
 
 	"github.com/google/uuid"
-
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -21,19 +20,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-type CustomStruct struct {
-	Content       string
-	FileName      string
-	FileExtension string
-}
-
 var (
 	BUCKET_NAME = os.Getenv("BUCKET_NAME")
 	BUCKET_KEY  = os.Getenv("BUCKET_KEY")
 )
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-
 	log.Println(request.Body)
 	contentType := request.Headers["content-type"]
 	if !strings.Contains(contentType, "multipart/form-data") {
@@ -48,13 +40,23 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	cfg, err := config.LoadDefaultConfig(ctx)
-
 	if err != nil {
 		log.Fatalf("unable to load SDK config, %v", err)
 	}
 
+	var fileData []byte
+	if request.IsBase64Encoded {
+		fileData, err = base64.StdEncoding.DecodeString(request.Body)
+		if err != nil {
+			log.Println("Error decoding base64:", err)
+			return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+		}
+	} else {
+		fileData = []byte(request.Body)
+	}
+
 	if strings.HasPrefix(mediaType, "multipart/") {
-		mr := multipart.NewReader(strings.NewReader(request.Body), params["boundary"])
+		mr := multipart.NewReader(bytes.NewReader(fileData), params["boundary"])
 		for {
 			part, err := mr.NextPart()
 			if err == io.EOF {
@@ -65,17 +67,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 				return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 			}
 			if part.FileName() != "" {
-				// Here, we've got the file data in part.
-				// Use `io.ReadAll(part)` or copy to another buffer to get the file contents.
 				fileData, err := io.ReadAll(part)
 				if err != nil {
 					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 				}
 
 				s3client := s3.NewFromConfig(cfg)
-
 				newUUID := uuid.NewString()
-
 				key := BUCKET_KEY + newUUID
 
 				input := &s3.PutObjectInput{
@@ -90,7 +88,6 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 				}
 
 				log.Println(output)
-
 			}
 		}
 	}
@@ -105,7 +102,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	response := events.APIGatewayProxyResponse{
 		StatusCode: 200,
 		Headers:    headers,
-		Body:       "file upload"}
+		Body:       "file uploaded successfully",
+	}
 	return response, nil
 }
 
