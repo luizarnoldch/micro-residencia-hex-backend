@@ -2,8 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -44,15 +43,12 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 	defer object.Body.Close()
 
-	// Read the object's content into a byte slice
-	data, err := ioutil.ReadAll(object.Body)
+	// Read the object's content into a byte slice using io.ReadAll
+	data, err := io.ReadAll(object.Body)
 	if err != nil {
 		log.Println("Error reading object data:", err)
 		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 	}
-
-	// Convert the byte slice to a base64 encoded string
-	encodedString := base64.StdEncoding.EncodeToString(data)
 
 	contentType := "application/octet-stream"
 	if object.ContentType != nil {
@@ -75,8 +71,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	return events.APIGatewayProxyResponse{
 		StatusCode:      200,
 		Headers:         headers,
-		IsBase64Encoded: true,
-		Body:            encodedString, // set the base64 encoded string as the body
+		IsBase64Encoded: false,
+		Body:            string(data),
 	}, nil
 }
 
