@@ -20,14 +20,17 @@ var (
 )
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	log.Println("Handler invoked")  // <-- Log at the start
+
 	objectKey := request.QueryStringParameters["key"]
 	if objectKey == "" {
+		log.Println("Object key not provided")  // <-- Log for missing key
 		return events.APIGatewayProxyResponse{StatusCode: http.StatusBadRequest, Body: "Object key is required."}, nil
 	}
 
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
+		log.Fatalf("Unable to load SDK config, %v", err)
 	}
 
 	s3client := s3.NewFromConfig(cfg)
@@ -39,7 +42,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	object, err := s3client.GetObject(ctx, input)
 	if err != nil {
-		log.Println("Error retrieving object:", err)
+		log.Println("Error retrieving object:", err)  // <-- Log for error while retrieving object
 		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 	}
 	defer object.Body.Close()
@@ -47,7 +50,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	// Read the object's content into a byte slice
 	data, err := io.ReadAll(object.Body)
 	if err != nil {
-		log.Println("Error reading object data:", err)
+		log.Println("Error reading object data:", err)  // <-- Log for error while reading object data
 		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 	}
 
@@ -56,12 +59,17 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	contentType := "application/octet-stream"
 	if object.ContentType != nil {
+		log.Println("ContentType != nil")
 		contentType = *object.ContentType
 	}
 
 	contentDisposition := "attachment"
 	if strings.HasSuffix(objectKey, ".jpg") || strings.HasSuffix(objectKey, ".jpeg") {
+		log.Println("String has suffix .jpg or .jpeg")
 		contentDisposition = "inline"
+	} else if strings.HasSuffix(objectKey, ".pdf") {
+		log.Println("String has suffix .pdf")
+		contentDisposition = "inline; filename=" + objectKey
 	}
 
 	headers := map[string]string{
@@ -72,6 +80,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		"Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
 	}
 
+	log.Println("Returning response")  // <-- Log before returning the response
+
 	return events.APIGatewayProxyResponse{
 		StatusCode:      200,
 		Headers:         headers,
@@ -81,5 +91,6 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 }
 
 func main() {
+	log.Println("Lambda starting")  // <-- Log at the start of Lambda execution
 	lambda.Start(handler)
 }

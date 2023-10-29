@@ -64,7 +64,6 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		for {
 			part, err := mr.NextPart()
 			if err == io.EOF {
-				log.Println("Error while io.EOF")
 				break
 			}
 			if err != nil {
