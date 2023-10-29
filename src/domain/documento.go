@@ -39,19 +39,18 @@ func (doc Documento) ToDocumentoResponse() DocumentoResponse {
 	}
 }
 
-
 func (req DocumentoRequest) ToDocumento() Documento {
-    id := uuid.NewString()
-    url := fmt.Sprintf("https://%s.s3.amazonaws.com/%s/%s.pdf", BUCKET_NAME, BUCKET_KEY, id)
+	id := uuid.NewString()
+	url := fmt.Sprintf("https://%s.s3.amazonaws.com/%s/%s.pdf", BUCKET_NAME, BUCKET_KEY, id)
 
-    return Documento{
-        Documento_ID:   id,
-        Departamento:   req.Departamento,
-        Residente:      req.Residente,
-        FechaDePago:    req.FechaDePago,
-        TipoDeServicio: req.TipoDeServicio,
-        UrlPDF:         url,
-    }
+	return Documento{
+		Documento_ID:   id,
+		Departamento:   req.Departamento,
+		Residente:      req.Residente,
+		FechaDePago:    req.FechaDePago,
+		TipoDeServicio: req.TipoDeServicio,
+		UrlPDF:         url,
+	}
 }
 
 type DocumentoResponse struct {
@@ -61,5 +60,5 @@ type DocumentoResponse struct {
 	FechaDePago    string `json:"fecha_de_pago"`
 	TipoDeServicio string `json:"tipo_de_servicio"`
 	UrlPDF         string `json:"url_pdf"`
-	Message 		string `json:"message"`
+	Message        string `json:"message"`
 }

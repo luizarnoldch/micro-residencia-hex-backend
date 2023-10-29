@@ -30,10 +30,12 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	var documentoRequest domain.DocumentoRequest
 
+	log.Printf("Received request body: %s", request.Body)
 	if err := json.Unmarshal([]byte(request.Body), &documentoRequest); err != nil {
 		log.Println("Error parsing request body as JSON.")
 		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 502}, nil
 	}
+
 
 	dynamoService := application.NewDocumentoServiceDynamo(dynamoClient, TABLE_NAME, ctx)
 
