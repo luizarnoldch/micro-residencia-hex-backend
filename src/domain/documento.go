@@ -17,7 +17,6 @@ type DocumentoRequest struct {
 	Residente      string `json:"residente"`
 	FechaDePago    string `json:"fecha_de_pago"`
 	TipoDeServicio string `json:"tipo_de_servicio"`
-	UrlPDF         string `json:"url_pdf"`
 }
 
 type Documento struct {
