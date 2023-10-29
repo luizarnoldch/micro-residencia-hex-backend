@@ -209,7 +209,7 @@ Resources:
                 - 'dynamodb:Scan'
               Resource: !GetAtt DocumentTable.Arn
       Events:
-        GetAllDocuments:
+        FilterDocuments:
           Type: Api
           Properties:
             Path: /document/filter
