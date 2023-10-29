@@ -19,6 +19,13 @@ var (
 	TABLE_NAME = os.Getenv("TABLE_NAME")
 )
 
+// Parse the JSON input
+type DataFilter struct {
+	Departamento string `json:"departamento"`
+	Residente    string `json:"residente"`
+	FechaDePago  string `json:"fecha_de_pago"`
+}
+
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	log.Println("Starting the handler")
 
@@ -30,23 +37,23 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	client := dynamodb.NewFromConfig(cfg)
 
+	log.Println("undecoded: ", request.Body)
+
 	decodedInput, err := base64.StdEncoding.DecodeString(request.Body)
 	if err != nil {
 		log.Printf("Failed to decode base64 input: %s", err)
 		return errorResponse(fmt.Sprintf("Failed to decode base64 input: %s", err)), nil
 	}
 
-	// Parse the JSON input
-	var inputData struct {
-		Departamento string `json:"departamento"`
-		Residente    string `json:"residente"`
-		FechaDePago  string `json:"fecha_de_pago"`
-	}
+	log.Println("decode: ", request.Body)
+
+	var inputData DataFilter
+
 	if err := json.Unmarshal(decodedInput, &inputData); err != nil {
 		log.Printf("Failed to parse JSON input: %s", err)
 		return errorResponse(fmt.Sprintf("Failed to parse JSON input: %s", err)), nil
 	}
-	
+
 	departamento := inputData.Departamento
 	residente := inputData.Residente
 	fechaDePago := inputData.FechaDePago
