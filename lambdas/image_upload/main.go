@@ -18,7 +18,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/google/uuid"
 )
 
 var (
@@ -58,6 +57,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		fileData = []byte(request.Body)
 	}
 
+	var fileName string
+
 	if strings.HasPrefix(mediaType, "multipart/") {
 		log.Println("MediaType: multipart/")
 		mr := multipart.NewReader(bytes.NewReader(fileData), params["boundary"])
@@ -70,6 +71,14 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 				log.Println("Error reading multipart section:", err)
 				return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 			}
+			if part.FormName() == "file_name" {
+				nameData, err := io.ReadAll(part)
+				if err != nil {
+					log.Println("Error reading the file_name part:", err)
+					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+				}
+				fileName = string(nameData)
+			}
 			if part.FileName() != "" {
 				log.Println("Filename != ''")
 				fileData, err := io.ReadAll(part)
@@ -77,28 +86,27 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 					log.Println("Error reading the part:", err)
 					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 				}
-		
+
 				s3client := s3.NewFromConfig(cfg)
-				newUUID := uuid.NewString()
-		
+
 				// Aquí obtienes la extensión del archivo
 				fileExt := filepath.Ext(part.FileName())
-		
+
 				// Y aquí la añades a la clave S3
-				key := BUCKET_KEY + newUUID + fileExt
-		
+				key := BUCKET_KEY + fileName + fileExt
+
 				input := &s3.PutObjectInput{
 					Bucket: aws.String(BUCKET_NAME),
 					Key:    aws.String(key),
 					Body:   bytes.NewReader(fileData),
 				}
-		
+
 				output, err := s3client.PutObject(ctx, input)
 				if err != nil {
 					log.Println("Error while putting object in S3:", err)
 					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 				}
-		
+
 				log.Println(output)
 			}
 		}

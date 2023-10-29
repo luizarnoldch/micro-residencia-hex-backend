@@ -32,4 +32,7 @@ e2e:
 	make deploy
 	sleep 3
 	make f_test
-
+tt:
+	git pull
+	make build
+	make deploy
