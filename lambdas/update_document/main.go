@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -30,7 +31,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	var documentoRequest domain.DocumentoRequest
 
-	if err := json.Unmarshal([]byte(request.Body), &documentoRequest); err != nil {
+	decodedBody, err := base64.StdEncoding.DecodeString(request.Body)
+	if err != nil {
+		log.Println("Error decoding base64 request body.")
+		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("Error decoding base64: %s", err), StatusCode: 400}, nil
+	}
+
+	if err := json.Unmarshal(decodedBody, &documentoRequest); err != nil {
 		log.Println("Error parsing request body as JSON.")
 		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 502}, nil
 	}
