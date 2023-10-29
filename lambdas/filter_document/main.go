@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"main/src/domain"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -73,7 +75,19 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		return errorResponse(fmt.Sprintf("Failed to scan DynamoDB: %s", err)), nil
 	}
 
-	body, err := json.Marshal(output.Items)
+	var documentos []domain.Documento
+	err = attributevalue.UnmarshalListOfMaps(output.Items, &documentos)
+	if err != nil {
+		return errorResponse(fmt.Sprintf("Failed parsing DynamoDB response: %s", err)), nil
+	}
+
+	var documentosResponse []domain.DocumentoResponse
+
+	for _, documento := range documentos {
+		documentosResponse = append(documentosResponse, documento.ToDocumentoResponse())
+	}
+
+	body, err := json.Marshal(documentosResponse)
 	if err != nil {
 		log.Printf("Failed to marshal response: %s", err)
 		return errorResponse(fmt.Sprintf("Failed to marshal response: %s", err)), nil
@@ -81,10 +95,10 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	log.Println("Handler completed successfully")
 	headers := map[string]string{
-		"Access-Control-Allow-Origin": "*",
+		"Access-Control-Allow-Origin":  "*",
 		"Access-Control-Allow-Methods": "DELETE,GET,HEAD,POST,PUT",
 		"Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
-		"Content-Type": "application/json",
+		"Content-Type":                 "application/json",
 	}
 
 	return events.APIGatewayProxyResponse{
