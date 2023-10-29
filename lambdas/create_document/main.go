@@ -42,7 +42,6 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		log.Printf("error creating documento in database :%s\n", err)
 		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 400}, nil
 	}
-
 	responseBody, err := json.Marshal(response)
 	if err != nil {
 		log.Printf("error marshaling response to JSON: %s\n", err)

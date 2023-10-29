@@ -18,14 +18,11 @@ type DocumentoServiceDynamo struct {
 	ctx    context.Context
 }
 
-func (dynamo DocumentoServiceDynamo) CreateDocument(req domain.DocumentoRequest) (domain.DocumentoSimpleResponse, error) {
+func (dynamo DocumentoServiceDynamo) CreateDocument(req domain.DocumentoRequest) (domain.DocumentoResponse, error) {
 	reqToDoc := req.ToDocumento()
 	item, err := attributevalue.MarshalMap(reqToDoc)
 	if err != nil {
-		return domain.DocumentoSimpleResponse{
-			Status:  504,
-			Message: err.Error(),
-		}, err
+		return domain.DocumentoResponse{Message: err.Error()}, err
 	}
 
 	input := &dynamodb.PutItemInput{
@@ -35,16 +32,12 @@ func (dynamo DocumentoServiceDynamo) CreateDocument(req domain.DocumentoRequest)
 
 	_, err = dynamo.client.PutItem(dynamo.ctx, input)
 	if err != nil {
-		return domain.DocumentoSimpleResponse{
-			Status:  503,
-			Message: err.Error(),
-		}, err
+		return domain.DocumentoResponse{Message: err.Error()}, err
 	}
 
-	return domain.DocumentoSimpleResponse{
-		Status:  200,
-		Message: "documento guardado",
-	}, nil
+	response := reqToDoc.ToDocumentoResponse()
+
+	return response, nil
 }
 
 func (dynamo DocumentoServiceDynamo) GetAllDocuments() ([]domain.DocumentoResponse, error) {
@@ -72,7 +65,7 @@ func (dynamo DocumentoServiceDynamo) GetAllDocuments() ([]domain.DocumentoRespon
 	return documentosResponse, nil
 }
 
-func (dynamo DocumentoServiceDynamo) UpdateDocument(req domain.DocumentoRequest, id string) (domain.DocumentoSimpleResponse, error) {
+func (dynamo DocumentoServiceDynamo) UpdateDocument(req domain.DocumentoRequest, id string) (domain.DocumentoResponse, error) {
 	reqToDoc := req.ToDocumento()
 
 	update := expression.
@@ -83,10 +76,7 @@ func (dynamo DocumentoServiceDynamo) UpdateDocument(req domain.DocumentoRequest,
 
 	expr, err := expression.NewBuilder().WithUpdate(update).Build()
 	if err != nil {
-		return domain.DocumentoSimpleResponse{
-			Status:  503,
-			Message: err.Error(),
-		}, err
+		return domain.DocumentoResponse{Message: err.Error()}, err
 	}
 
 	id_dynamo, err := attributevalue.Marshal(id)
@@ -108,19 +98,15 @@ func (dynamo DocumentoServiceDynamo) UpdateDocument(req domain.DocumentoRequest,
 
 	_, err = dynamo.client.UpdateItem(dynamo.ctx, input)
 	if err != nil {
-		return domain.DocumentoSimpleResponse{
-			Status:  503,
-			Message: err.Error(),
-		}, err
+		return domain.DocumentoResponse{Message: err.Error()}, err
 	}
 
-	return domain.DocumentoSimpleResponse{
-		Status:  200,
-		Message: "documento actualizado",
-	}, nil
+	response := reqToDoc.ToDocumentoResponse()
+
+	return response, nil
 }
 
-func (dynamo DocumentoServiceDynamo) DeleteDocument(id string) (domain.DocumentoSimpleResponse, error) {
+func (dynamo DocumentoServiceDynamo) DeleteDocument(id string) (domain.DocumentoResponse, error) {
 	id_dynamo, err := attributevalue.Marshal(id)
 	if err != nil {
 		panic(err)
@@ -136,16 +122,10 @@ func (dynamo DocumentoServiceDynamo) DeleteDocument(id string) (domain.Documento
 
 	_, err = dynamo.client.DeleteItem(dynamo.ctx, input)
 	if err != nil {
-		return domain.DocumentoSimpleResponse{
-			Status:  503,
-			Message: err.Error(),
-		}, err
+		return domain.DocumentoResponse{Message: err.Error()}, err
 	}
 
-	return domain.DocumentoSimpleResponse{
-		Status:  200,
-		Message: "documento eliminado",
-	}, nil
+	return domain.DocumentoResponse{Message: fmt.Sprintf("Usuario: %s eliminado",id_dynamo)}, nil
 }
 
 func NewDocumentoServiceDynamo(client *dynamodb.Client, table string, ctx context.Context) *DocumentoServiceDynamo {

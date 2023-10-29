@@ -1,12 +1,23 @@
 package domain
 
-import "github.com/google/uuid"
+import (
+	"fmt"
+	"os"
+
+	"github.com/google/uuid"
+)
+
+var (
+	BUCKET_NAME = os.Getenv("BUCKET_NAME")
+	BUCKET_KEY  = os.Getenv("BUCKET_KEY")
+)
 
 type DocumentoRequest struct {
 	Departamento   string `json:"departamento"`
 	Residente      string `json:"residente"`
 	FechaDePago    string `json:"fecha_de_pago"`
 	TipoDeServicio string `json:"tipo_de_servicio"`
+	UrlPDF         string `json:"url_pdf"`
 }
 
 type Documento struct {
@@ -15,6 +26,7 @@ type Documento struct {
 	Residente      string `dynamodbav:"residente" json:"residente"`
 	FechaDePago    string `dynamodbav:"fecha_de_pago" json:"fecha_de_pago"`
 	TipoDeServicio string `dynamodbav:"tipo_de_servicio" json:"tipo_de_servicio"`
+	UrlPDF         string `dynamodbav:"url_pdf" json:"url_pdf"`
 }
 
 func (doc Documento) ToDocumentoResponse() DocumentoResponse {
@@ -24,22 +36,23 @@ func (doc Documento) ToDocumentoResponse() DocumentoResponse {
 		Residente:      doc.Residente,
 		FechaDePago:    doc.FechaDePago,
 		TipoDeServicio: doc.TipoDeServicio,
+		UrlPDF:         doc.UrlPDF,
 	}
 }
+
 
 func (req DocumentoRequest) ToDocumento() Documento {
-	return Documento{
-		Documento_ID:   uuid.NewString(),
-		Departamento:   req.Departamento,
-		Residente:      req.Residente,
-		FechaDePago:    req.FechaDePago,
-		TipoDeServicio: req.TipoDeServicio,
-	}
-}
+    id := uuid.NewString()
+    url := fmt.Sprintf("https://%s.s3.amazonaws.com/%s/%s.pdf", BUCKET_NAME, BUCKET_KEY, id)
 
-type DocumentoSimpleResponse struct {
-	Status  int    `json:"status"`
-	Message string `json:"message"`
+    return Documento{
+        Documento_ID:   id,
+        Departamento:   req.Departamento,
+        Residente:      req.Residente,
+        FechaDePago:    req.FechaDePago,
+        TipoDeServicio: req.TipoDeServicio,
+        UrlPDF:         url,
+    }
 }
 
 type DocumentoResponse struct {
@@ -48,4 +61,6 @@ type DocumentoResponse struct {
 	Residente      string `json:"residente"`
 	FechaDePago    string `json:"fecha_de_pago"`
 	TipoDeServicio string `json:"tipo_de_servicio"`
+	UrlPDF         string `json:"url_pdf"`
+	Message 		string `json:"message"`
 }
