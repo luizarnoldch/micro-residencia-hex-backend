@@ -141,7 +141,7 @@ Resources:
           Statement:
             - Effect: Allow
               Action:
-                - 'dynamodb:Scan'
+                - 'dynamodb:*'
               Resource: !GetAtt DocumentTable.Arn
       Events:
         FilterDocuments:
