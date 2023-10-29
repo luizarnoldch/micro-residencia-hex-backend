@@ -10,14 +10,15 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/google/uuid"
 )
 
 var (
@@ -47,19 +48,23 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	var fileData []byte
 	if request.IsBase64Encoded {
 		fileData, err = base64.StdEncoding.DecodeString(request.Body)
+		log.Println("Request is Base64Encoded")
 		if err != nil {
 			log.Println("Error decoding base64:", err)
 			return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 		}
 	} else {
+		log.Println("Request is not Base64Encoded")
 		fileData = []byte(request.Body)
 	}
 
 	if strings.HasPrefix(mediaType, "multipart/") {
+		log.Println("MediaType: multipart/")
 		mr := multipart.NewReader(bytes.NewReader(fileData), params["boundary"])
 		for {
 			part, err := mr.NextPart()
 			if err == io.EOF {
+				log.Println("Error while io.EOF")
 				break
 			}
 			if err != nil {
@@ -67,26 +72,34 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 				return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 			}
 			if part.FileName() != "" {
+				log.Println("Filename != ''")
 				fileData, err := io.ReadAll(part)
 				if err != nil {
+					log.Println("Error reading the part:", err)
 					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 				}
-
+		
 				s3client := s3.NewFromConfig(cfg)
 				newUUID := uuid.NewString()
-				key := BUCKET_KEY + newUUID
-
+		
+				// Aquí obtienes la extensión del archivo
+				fileExt := filepath.Ext(part.FileName())
+		
+				// Y aquí la añades a la clave S3
+				key := BUCKET_KEY + newUUID + fileExt
+		
 				input := &s3.PutObjectInput{
 					Bucket: aws.String(BUCKET_NAME),
 					Key:    aws.String(key),
 					Body:   bytes.NewReader(fileData),
 				}
-
+		
 				output, err := s3client.PutObject(ctx, input)
 				if err != nil {
+					log.Println("Error while putting object in S3:", err)
 					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 				}
-
+		
 				log.Println(output)
 			}
 		}
