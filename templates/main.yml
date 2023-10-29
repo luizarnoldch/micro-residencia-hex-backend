@@ -212,7 +212,7 @@ Resources:
         GetAllDocuments:
           Type: Api
           Properties:
-            Path: /document
+            Path: /document/filter
             Method: get
             RestApiId: !Ref ApiGatewayApi
   DocumentTable:
