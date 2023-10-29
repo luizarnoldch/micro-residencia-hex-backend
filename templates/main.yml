@@ -44,7 +44,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref DocumentTable
       Events:
-        CreateDocument:
+        DeleteDocument:
           Type: Api
           Properties:
             Path: /document/{id_documento}
@@ -66,7 +66,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref DocumentTable
       Events:
-        CreateDocument:
+        UpdateDocument:
           Type: Api
           Properties:
             Path: /document/{id_documento}
@@ -185,7 +185,7 @@ Resources:
         - S3WritePolicy:
             BucketName: !Ref DocumentBucket
       Events:
-        File:
+        UploadFile:
           Type: Api 
           Properties:
             Path: /image_upload
@@ -209,7 +209,7 @@ Resources:
         - S3ReadPolicy:
             BucketName: !Ref DocumentBucket
       Events:
-        File:
+        ReadFile:
           Type: Api 
           Properties:
             Path: /image_read
