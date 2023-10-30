@@ -48,7 +48,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	log.Println("Decoded: ", decodedBody)
 
 	log.Println("Convirtiendo el cuerpo decodificado a JSON...")
-	if err := json.Unmarshal([]byte(request.Body), &documentoRequest); err != nil {
+	if err := json.Unmarshal(decodedBody, &documentoRequest); err != nil {
 		log.Println("Error parsing request body as JSON:", err)
 		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 502}, nil
 	}
