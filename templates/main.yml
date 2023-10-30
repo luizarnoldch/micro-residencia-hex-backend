@@ -24,7 +24,7 @@ Resources:
         LAMBDA_ALIAS: !Ref Stage
       Cors:
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-        AllowMethods: "'DELETE, GET, HEAD, POST, PUT'"
+        AllowMethods: "'OPTIONS,DELETE,GET,HEAD,POST,PUT'"
         AllowOrigin: "'*'"
       BinaryMediaTypes:
         - "*/*"

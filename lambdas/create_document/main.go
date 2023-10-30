@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
+	// "encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -31,20 +31,22 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			StatusCode: 504}, nil
 	}
 
-	log.Println("Decodificando el cuerpo de la solicitud...")
-
-	log.Println("Undecoded: ", request.Body)
 	var documentoRequest domain.DocumentoRequest
-	decodedBody, err := base64.StdEncoding.DecodeString(request.Body)
-	if err != nil {
-		log.Println("Error decoding base64 request body:", err)
-		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("Error decoding base64: %s", err), StatusCode: 400}, nil
-	}
 
-	log.Println("Decoded: ", decodedBody)
+	// log.Println("Decodificando el cuerpo de la solicitud...")
+
+	// log.Println("Undecoded: ", request.Body)
+	
+	// decodedBody, err := base64.StdEncoding.DecodeString(request.Body)
+	// if err != nil {
+	// 	log.Println("Error decoding base64 request body:", err)
+	// 	return events.APIGatewayProxyResponse{Body: fmt.Sprintf("Error decoding base64: %s", err), StatusCode: 400}, nil
+	// }
+
+	// log.Println("Decoded: ", decodedBody)
 
 	log.Println("Convirtiendo el cuerpo decodificado a JSON...")
-	if err := json.Unmarshal(decodedBody, &documentoRequest); err != nil {
+	if err := json.Unmarshal([]byte(request.Body), &documentoRequest); err != nil {
 		log.Println("Error parsing request body as JSON:", err)
 		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 502}, nil
 	}
