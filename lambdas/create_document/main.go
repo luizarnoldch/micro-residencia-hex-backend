@@ -70,10 +70,9 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	headers := map[string]string{
 		"Access-Control-Allow-Origin":  "*",
-		"Access-Control-Allow-Methods": "OPTIONS,DELETE,GET,HEAD,POST,PUT",
-		"Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+		"Access-Control-Allow-Methods": "POST,OPTIONS,DELETE,GET,HEAD,PUT",
+		"Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Custom-Header",
 		"Content-Type":                 "application/json",
-		"Access-Control-Allow-Credentials" : "true",
 	}
 
 	log.Println("Finalizando la función Lambda con éxito")
