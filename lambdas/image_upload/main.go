@@ -26,10 +26,10 @@ var (
 )
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	log.Println(request.Body)
+	log.Println("Starting Lambda handler")
 	contentType := request.Headers["content-type"]
 	if !strings.Contains(contentType, "multipart/form-data") {
-		log.Println("Error while getting header: multipart/form-data Error")
+		log.Println("Error: content type not multipart/form-data")
 		return events.APIGatewayProxyResponse{StatusCode: http.StatusBadRequest}, nil
 	}
 
@@ -41,80 +41,78 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
+		log.Fatalf("Error loading SDK config: %v", err)
 	}
 
 	var fileData []byte
 	if request.IsBase64Encoded {
+		log.Println("Request body is Base64Encoded")
 		fileData, err = base64.StdEncoding.DecodeString(request.Body)
-		log.Println("Request is Base64Encoded")
 		if err != nil {
-			log.Println("Error decoding base64:", err)
+			log.Println("Error decoding base64 body:", err)
 			return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 		}
 	} else {
-		log.Println("Request is not Base64Encoded")
+		log.Println("Request body is not Base64Encoded")
 		fileData = []byte(request.Body)
 	}
 
 	var fileName string
+	var fileBuffer bytes.Buffer
 
 	if strings.HasPrefix(mediaType, "multipart/") {
-		log.Println("MediaType: multipart/")
+		log.Println("Handling multipart content")
 		mr := multipart.NewReader(bytes.NewReader(fileData), params["boundary"])
 		for {
 			part, err := mr.NextPart()
 			if err == io.EOF {
+				log.Println("Reached end of multipart content")
 				break
 			}
 			if err != nil {
 				log.Println("Error reading multipart section:", err)
 				return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 			}
-			if part.FormName() == "file_name" {
-				fileName = part.FileName()
-				if fileName == "" {
-					nameData, err := io.ReadAll(part)
-					if err != nil {
-						log.Println("Error reading the file_name part:", err)
-						return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
-					}
-					fileName = string(nameData)
-				}
-			}			
-			if part.FileName() != "" {
-				log.Println("Filename != ''")
-				fileData, err := io.ReadAll(part)
+			switch part.FormName() {
+			case "file_name":
+				nameData, err := io.ReadAll(part)
 				if err != nil {
-					log.Println("Error reading the part:", err)
+					log.Println("Error reading file_name part:", err)
 					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 				}
-
-				s3client := s3.NewFromConfig(cfg)
-
-				// Aquí obtienes la extensión del archivo
-				fileExt := filepath.Ext(part.FileName())
-
-				log.Println("filename: ", fileName)
-
-				// Y aquí la añades a la clave S3
-				key := BUCKET_KEY + fileName + fileExt
-
-				input := &s3.PutObjectInput{
-					Bucket: aws.String(BUCKET_NAME),
-					Key:    aws.String(key),
-					Body:   bytes.NewReader(fileData),
-				}
-
-				output, err := s3client.PutObject(ctx, input)
-				if err != nil {
-					log.Println("Error while putting object in S3:", err)
+				fileName = string(nameData)
+				log.Println("Received file name:", fileName)
+			case "file":
+				log.Println("Reading file content")
+				if _, err := io.Copy(&fileBuffer, part); err != nil {
+					log.Println("Error copying file content to buffer:", err)
 					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 				}
-
-				log.Println(output)
 			}
 		}
+	}
+
+	if fileBuffer.Len() > 0 && fileName != "" {
+		log.Println("Storing file to S3 bucket")
+		s3client := s3.NewFromConfig(cfg)
+		fileExt := filepath.Ext(fileName)
+		key := BUCKET_KEY + fileName + fileExt
+		log.Println("Using S3 key:", key)
+
+		input := &s3.PutObjectInput{
+			Bucket: aws.String(BUCKET_NAME),
+			Key:    aws.String(key),
+			Body:   bytes.NewReader(fileBuffer.Bytes()),
+		}
+
+		output, err := s3client.PutObject(ctx, input)
+		if err != nil {
+			log.Println("Error while putting object to S3:", err)
+			return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+		}
+		log.Println("Successfully stored to S3:", output)
+	} else {
+		log.Println("Either file buffer is empty or filename is missing")
 	}
 
 	headers := map[string]string{
@@ -124,14 +122,14 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		"Content-Type":                 "application/json",
 	}
 
-	response := events.APIGatewayProxyResponse{
+	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
 		Headers:    headers,
 		Body:       "file uploaded successfully",
-	}
-	return response, nil
+	}, nil
 }
 
 func main() {
+	log.Println("Starting Lambda execution")
 	lambda.Start(handler)
 }
