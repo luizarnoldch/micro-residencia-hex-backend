@@ -5,7 +5,7 @@ import (
 	// "encoding/base64"
 	// "encoding/json"
 	// "fmt"
-	"os"
+	// "os"
 
 	"log"
 
@@ -17,9 +17,9 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-var (
-	TABLE_NAME = os.Getenv("TABLE_NAME")
-)
+// var (
+// 	TABLE_NAME = os.Getenv("TABLE_NAME")
+// )
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	log.Println("Inicio de la función Lambda")
@@ -70,6 +70,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	headers := map[string]string{
 		"Access-Control-Allow-Origin":  "*",
+		"Access-Control-Allow-Methods": "OPTIONS,DELETE,GET,HEAD,POST,PUT",
+		"Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
 		"Content-Type":                 "application/json",
 	}
 

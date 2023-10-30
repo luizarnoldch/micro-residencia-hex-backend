@@ -87,18 +87,12 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref DocumentTable
-        - Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - 'dynamodb:*'
-              Resource: !GetAtt DocumentTable.Arn
       Events:
         CreateDocument:
           Type: Api
           Properties:
             Path: /document
-            Method: post
+            Method: options
             RestApiId: !Ref ApiGatewayApi
   GetAllDocumentsFunction:
     Type: AWS::Serverless::Function
@@ -115,12 +109,6 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref DocumentTable
-        - Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - 'dynamodb:*'
-              Resource: !GetAtt DocumentTable.Arn
       Events:
         GetAllDocuments:
           Type: Api
@@ -147,7 +135,7 @@ Resources:
           Statement:
             - Effect: Allow
               Action:
-                - 'dynamodb:*'
+                - 'dynamodb:Scan'
               Resource: !GetAtt DocumentTable.Arn
       Events:
         FilterDocuments:
