@@ -59,6 +59,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	var fileName string
 	var fileBuffer bytes.Buffer
+	var realFileName string 
 
 	if strings.HasPrefix(mediaType, "multipart/") {
 		log.Println("Handling multipart content")
@@ -84,6 +85,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 				log.Println("Received file name:", fileName)
 			case "file":
 				log.Println("Reading file content")
+				realFileName = part.FileName()
 				if _, err := io.Copy(&fileBuffer, part); err != nil {
 					log.Println("Error copying file content to buffer:", err)
 					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
@@ -95,7 +97,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	if fileBuffer.Len() > 0 && fileName != "" {
 		log.Println("Storing file to S3 bucket")
 		s3client := s3.NewFromConfig(cfg)
-		fileExt := filepath.Ext(fileName)
+		fileExt := filepath.Ext(realFileName)
 		key := BUCKET_KEY + fileName + fileExt
 		log.Println("Using S3 key:", key)
 
