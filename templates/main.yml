@@ -26,6 +26,8 @@ Resources:
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
         AllowMethods: "'OPTIONS,DELETE,GET,HEAD,POST,PUT'"
         AllowOrigin: "'*'"
+      BinaryMediaTypes: 
+          - "*/*"
   DeleteDocumentFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -195,8 +197,6 @@ Resources:
             Path: /image_upload
             Method: post
             RestApiId: !Ref ApiGatewayApi
-            BinaryMediaTypes: 
-            - "*/*"
   FileReadFunction:
     Type: AWS::Serverless::Function
     Metadata:
