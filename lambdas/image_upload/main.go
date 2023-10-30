@@ -72,13 +72,16 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 				return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 			}
 			if part.FormName() == "file_name" {
-				nameData, err := io.ReadAll(part)
-				if err != nil {
-					log.Println("Error reading the file_name part:", err)
-					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+				fileName = part.FileName()
+				if fileName == "" {
+					nameData, err := io.ReadAll(part)
+					if err != nil {
+						log.Println("Error reading the file_name part:", err)
+						return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+					}
+					fileName = string(nameData)
 				}
-				fileName = string(nameData)
-			}
+			}			
 			if part.FileName() != "" {
 				log.Println("Filename != ''")
 				fileData, err := io.ReadAll(part)
