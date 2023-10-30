@@ -87,6 +87,12 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref DocumentTable
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'dynamodb:*'
+              Resource: !GetAtt DocumentTable.Arn
       Events:
         CreateDocument:
           Type: Api
@@ -113,7 +119,7 @@ Resources:
           Statement:
             - Effect: Allow
               Action:
-                - 'dynamodb:PartiQLSelect'
+                - 'dynamodb:*'
               Resource: !GetAtt DocumentTable.Arn
       Events:
         GetAllDocuments:
