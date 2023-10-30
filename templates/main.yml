@@ -92,7 +92,7 @@ Resources:
           Type: Api
           Properties:
             Path: /document
-            Method: options
+            Method: post
             RestApiId: !Ref ApiGatewayApi
   GetAllDocumentsFunction:
     Type: AWS::Serverless::Function

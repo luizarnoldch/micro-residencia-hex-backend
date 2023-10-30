@@ -92,6 +92,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 				// Aquí obtienes la extensión del archivo
 				fileExt := filepath.Ext(part.FileName())
 
+				log.Println("filename: ", fileName)
+
 				// Y aquí la añades a la clave S3
 				key := BUCKET_KEY + fileName + fileExt
 
