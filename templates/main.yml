@@ -109,6 +109,12 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref DocumentTable
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'dynamodb:PartiQLSelect'
+              Resource: !GetAtt DocumentTable.Arn
       Events:
         GetAllDocuments:
           Type: Api
