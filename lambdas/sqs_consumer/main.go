@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -17,8 +18,9 @@ import (
 
 // FileData structure to match the JSON structure
 type FileData struct {
-	FileContents string `json:"file_contents"`
-	FileName     string `json:"file_name"`
+	FileContents string `json:"file_contents"` // Contenido del archivo codificado en base64
+	FileName     string `json:"file_name"`     // Nombre real del archivo
+	RealFileName     string `json:"real_file_name"`     // Nombre real del archivo
 }
 // FileData structure to match the JSON structure
 var (
@@ -62,7 +64,8 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 		// If the file content is not empty, store it in the S3 bucket
 		if len(fileContent) > 0 && fileData.FileName != "" {
 			log.Println("Storing file to S3 bucket")
-			key := BUCKET_KEY + fileData.FileName
+			fileExt := filepath.Ext(fileData.RealFileName)
+			key := BUCKET_KEY + fileData.FileName + fileExt
 			log.Println("Using S3 key:", key)
 
 			// Create a reader from the file content

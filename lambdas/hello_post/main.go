@@ -157,12 +157,14 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	type FileData struct {
 		FileContents string `json:"file_contents"` // Contenido del archivo codificado en base64
 		FileName     string `json:"file_name"`     // Nombre real del archivo
+		RealFileName     string `json:"real_file_name"`     // Nombre real del archivo
 	}
 
 	// Crear una instancia de la estructura con los datos codificados y el nombre del archivo
 	newData := FileData{
 		FileContents: encodedFileContents,
-		FileName:     realFileName,
+		FileName:     fileName,
+		RealFileName: realFileName,
 	}
 
 	// Serializar la estructura a JSON
