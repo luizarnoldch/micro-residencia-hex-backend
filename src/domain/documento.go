@@ -41,7 +41,7 @@ func (doc Documento) ToDocumentoResponse() DocumentoResponse {
 
 func (req DocumentoRequest) ToDocumento() Documento {
 	id := uuid.NewString()
-	url := fmt.Sprintf("https://%s.s3.amazonaws.com/%s/%s.pdf", BUCKET_NAME, BUCKET_KEY, id)
+	url := fmt.Sprintf("https://%s.s3.amazonaws.com/%s%s.pdf", BUCKET_NAME, BUCKET_KEY, id)
 
 	return Documento{
 		Documento_ID:   id,
