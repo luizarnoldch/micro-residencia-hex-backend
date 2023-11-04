@@ -161,7 +161,7 @@ Resources:
       Runtime: provided.al2
       Policies:
         - SQSSendMessagePolicy:
-            QueueName: !GetAtt SQSProviderQueue.QueueName
+            QueueName: !Ref SQSProviderQueue
       Events:
         HelloWorld:
           Type: Api 
@@ -190,7 +190,7 @@ Resources:
                 - sqs:ReceiveMessage
                 - sqs:DeleteMessage
                 - sqs:GetQueueAttributes
-              Resource: !GetAtt HelloWorldFunction.Arn
+              Resource: !GetAtt SQSProviderQueue.Arn
       Events:
         SQSEvent:
           Type: SQS
