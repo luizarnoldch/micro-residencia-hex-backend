@@ -31,9 +31,11 @@ var (
 	SQS_NAME = os.Getenv("SQS_NAME")
 )
 
+// Definir una estructura que represente el objeto JSON
 type FileData struct {
 	FileContents string `json:"file_contents"` // Contenido del archivo codificado en base64
 	FileName     string `json:"file_name"`     // Nombre real del archivo
+	RealFileName     string `json:"real_file_name"`     // Nombre real del archivo
 }
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -178,10 +180,19 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	// Convertir el bytes.Buffer a base64 para que pueda ser representado en JSON
 	encodedFileContents := base64.StdEncoding.EncodeToString(fileBuffer.Bytes())
 
+	log.Println("Creando documento en la base de datos...")
+	dynamoService := application.NewDocumentoServiceDynamo(dynamoClient, TABLE_NAME, ctx)
+	response, err := dynamoService.CreateDocument(documentoRequest)
+	if err != nil {
+		log.Printf("Error creating documento in database: %s", err)
+		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 400}, nil
+	}
+
 	// Crear una instancia de la estructura con los datos codificados y el nombre del archivo
 	newData := FileData{
 		FileContents: encodedFileContents,
 		FileName:     realFileName,
+		RealFileName: response.Documento_ID,
 	}
 
 	// Serializar la estructura a JSON
@@ -212,14 +223,6 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			StatusCode: 504,
 			Body:       err.Error(),
 		}, fmt.Errorf("error sending SQS message: %w", err)
-	}
-
-	log.Println("Creando documento en la base de datos...")
-	dynamoService := application.NewDocumentoServiceDynamo(dynamoClient, TABLE_NAME, ctx)
-	response, err := dynamoService.CreateDocument(documentoRequest)
-	if err != nil {
-		log.Printf("Error creating documento in database: %s", err)
-		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 400}, nil
 	}
 
 	log.Println("Convirtiendo la respuesta a JSON...")
