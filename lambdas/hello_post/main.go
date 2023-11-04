@@ -150,35 +150,31 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	log.Println("realFileName: ",realFileName)
 
 
-	type FileInformation struct {
-		FileName        string `json:"file_name"`
-		Departamento    string `json:"departamento"`
-		Residente       string `json:"residente"`
-		FechaDePago     string `json:"fecha_de_pago"`
-		TipoDeServicio  string `json:"tipo_de_servicio"`
-		RealFileName    string `json:"real_file_name"`
+	// Convertir el bytes.Buffer a base64 para que pueda ser representado en JSON
+	encodedFileContents := base64.StdEncoding.EncodeToString(fileBuffer.Bytes())
+
+	// Definir una estructura que represente el objeto JSON
+	type FileData struct {
+		FileContents string `json:"file_contents"` // Contenido del archivo codificado en base64
+		FileName     string `json:"file_name"`     // Nombre real del archivo
 	}
 
-	// Crear una instancia de la estructura y asignar los valores de las variables
-	fileInfo := FileInformation{
-		FileName:        fileName,
-		Departamento:    fileDepartamento,
-		Residente:       fileResidente,
-		FechaDePago:     fileFechaPago,
-		TipoDeServicio:  fileTipoServicio,
-		RealFileName:    realFileName,
+	// Crear una instancia de la estructura con los datos codificados y el nombre del archivo
+	newData := FileData{
+		FileContents: encodedFileContents,
+		FileName:     realFileName,
 	}
 
 	// Serializar la estructura a JSON
-	jsonData, err := json.Marshal(fileInfo)
+	jsonData, err := json.Marshal(newData)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error al serializar a JSON:", err)
 		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
 	}
 
 	// Convertir los datos JSON a una cadena y mostrarla
 	jsonString := string(jsonData)
-	log.Println(jsonString)
+	fmt.Println(jsonString)
 
 	// ======================== SQS code ==========================================
 
