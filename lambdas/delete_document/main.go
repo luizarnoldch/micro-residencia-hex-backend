@@ -37,6 +37,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("%s", err), StatusCode: 400}, nil
 	}
 
+	response.Documento_ID = id_documento
+
 	responseBody, err := json.Marshal(response)
 	if err != nil {
 		log.Printf("error marshaling response to JSON: %s\n", err)
