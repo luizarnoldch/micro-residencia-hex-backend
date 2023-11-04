@@ -32,10 +32,12 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	// Send message
 	msgInput := &sqs.SendMessageInput{
-		QueueUrl:       aws.String(SQS_NAME),
-		MessageBody:    aws.String("Hello World!"),
-		MessageGroupId: aws.String("Group1"), // Required for FIFO queues
+		QueueUrl:               aws.String(SQS_NAME),
+		MessageBody:            aws.String("Hello World!"),
+		MessageGroupId:         aws.String("Group1"), // Required for FIFO queues
+		MessageDeduplicationId: aws.String("YourUniqueDeduplicationId"), // Add a unique deduplication ID
 	}
+	
 
 	_, err = sqsClient.SendMessage(ctx, msgInput)
 	if err != nil {
