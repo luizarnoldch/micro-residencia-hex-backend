@@ -1,34 +1,95 @@
 package main
 
 import (
+	"bytes"
 	"context"
-	"fmt"
+	"encoding/base64"
+	"encoding/json"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-func handler(ctx context.Context, sqsEvent events.SQSEvent) (error) {
-	log.Println("sqs lambda start")
+// FileData structure to match the JSON structure
+type FileData struct {
+	FileContents string `json:"file_contents"`
+	FileName     string `json:"file_name"`
+}
+// FileData structure to match the JSON structure
+var (
+	BUCKET_NAME = os.Getenv("BUCKET_NAME")
+	BUCKET_KEY  = os.Getenv("BUCKET_KEY")
+)
+
+func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
+	log.Println("SQS Lambda start")
+
+	// Load AWS configuration
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		log.Fatalf("Unable to load SDK config, %v", err)
+	}
+
+	// Create an S3 service client
+	s3client := s3.NewFromConfig(cfg)
+
 	for _, message := range sqsEvent.Records {
-		log.Printf("The message %s for event source %s = %s\n", message.MessageId, message.EventSource, message.Body)
-        fmt.Printf("The message %s for event source %s = %s\n", message.MessageId, message.EventSource, message.Body)
+		log.Printf("Processing message %s for event source %s\n", message.MessageId, message.EventSource)
 
-		body := message.Body
+		// Parse the JSON body into the FileData structure
+		var fileData FileData
+		err := json.Unmarshal([]byte(message.Body), &fileData)
+		if err != nil {
+			log.Printf("Error parsing JSON: %v\n", err)
+			continue
+		}
 
-		log.Println("The message is: ", body)
-    }
+		// Decode the base64 string to []byte
+		fileContent, err := base64.StdEncoding.DecodeString(fileData.FileContents)
+		if err != nil {
+			log.Printf("Error decoding base64: %v\n", err)
+			continue
+		}
 
-	log.Println("sqs lambda end")
+		// Log the file name
+		log.Println("File name:", fileData.FileName)
 
-	// headers := map[string]string{
-	// 	"Access-Control-Allow-Origin": "*",
-	// 	"Access-Control-Allow-Methods": "DELETE,GET,HEAD,POST,PUT",
-	// 	"Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
-	// 	"Content-Type": "application/json",
-	// }
+		// If the file content is not empty, store it in the S3 bucket
+		if len(fileContent) > 0 && fileData.FileName != "" {
+			log.Println("Storing file to S3 bucket")
+			fileExt := filepath.Ext(fileData.FileName)
+			key := BUCKET_KEY + fileData.FileName + fileExt
+			log.Println("Using S3 key:", key)
 
+			// Create a reader from the file content
+			reader := bytes.NewReader(fileContent)
+
+			// Prepare the PutObject input
+			input := &s3.PutObjectInput{
+				Bucket: aws.String(BUCKET_NAME),
+				Key:    aws.String(key),
+				Body:   reader,
+			}
+
+			// Upload the file to S3
+			output, err := s3client.PutObject(ctx, input)
+			if err != nil {
+				log.Printf("Error while putting object to S3: %v\n", err)
+				continue
+			}
+			log.Printf("Successfully stored to S3: %v\n", output)
+		} else {
+			log.Println("File content is empty or file name is missing")
+		}
+	}
+
+	log.Println("SQS Lambda end")
 	return nil
 }
 

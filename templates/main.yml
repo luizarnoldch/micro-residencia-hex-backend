@@ -206,6 +206,10 @@ Resources:
       FunctionName: !Sub "${ProjectName}-sqs_consumer"
       Handler: bootstrap
       Runtime: provided.al2
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref DocumentBucket
+          BUCKET_KEY: !Sub "documentos/"
       Policies:
         - Statement:
             - Effect: Allow
@@ -214,6 +218,8 @@ Resources:
                 - sqs:DeleteMessage
                 - sqs:GetQueueAttributes
               Resource: !GetAtt SQSProviderQueue.Arn
+        - S3WritePolicy:
+            BucketName: !Ref DocumentBucket
       Events:
         SQSEvent:
           Type: SQS
