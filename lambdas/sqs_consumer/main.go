@@ -66,7 +66,7 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 		// If the file content is not empty, store it in the S3 bucket
 		if len(fileContent) > 0 && fileData.FileName != "" {
 			log.Println("Storing file to S3 bucket")
-			fileExt := filepath.Ext(fileData.RealFileName)
+			fileExt := filepath.Ext(fileData.FileName)
 			key := BUCKET_KEY + fileData.RealFileName + fileExt
 			log.Println("Using S3 key:", key)
 
