@@ -34,7 +34,6 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	msgInput := &sqs.SendMessageInput{
 		QueueUrl:               aws.String(SQS_NAME),
 		MessageBody:            aws.String("Hello World!"),
-		MessageGroupId:         aws.String("Group1"), // Required for FIFO queues
 	}
 	
 
