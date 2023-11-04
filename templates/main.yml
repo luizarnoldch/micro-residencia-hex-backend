@@ -179,6 +179,8 @@ Resources:
       FunctionName: !Sub "${ProjectName}-hello_post"
       Handler: bootstrap
       Runtime: provided.al2
+      Timeout: 900
+      MemorySize: 1024
       Environment:
         Variables:
           SQS_NAME: !Ref SQSProviderQueue
