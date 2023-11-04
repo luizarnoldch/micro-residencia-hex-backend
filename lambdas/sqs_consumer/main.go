@@ -14,6 +14,10 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) (error) {
 	for _, message := range sqsEvent.Records {
 		log.Printf("The message %s for event source %s = %s\n", message.MessageId, message.EventSource, message.Body)
         fmt.Printf("The message %s for event source %s = %s\n", message.MessageId, message.EventSource, message.Body)
+
+		body := message.Body
+
+		log.Println("The message is: ", body)
     }
 
 	log.Println("sqs lambda end")
