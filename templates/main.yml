@@ -84,9 +84,15 @@ Resources:
       Environment:
         Variables:
           TABLE_NAME: !Ref DocumentTable
+          SQS_NAME: !Ref SQSProviderQueue
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref DocumentTable
+        - Statement:
+          - Effect: Allow
+            Action:
+              - sqs:SendMessage
+            Resource: !GetAtt SQSProviderQueue.Arn
       Events:
         CreateDocument:
           Type: Api
