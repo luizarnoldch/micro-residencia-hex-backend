@@ -176,33 +176,6 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${ProjectName}-sqs_provider"
-  HelloWorldPostFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: go1.x
-    Properties:
-      CodeUri: ../bin/hello_post.zip
-      FunctionName: !Sub "${ProjectName}-hello_post"
-      Handler: bootstrap
-      Runtime: provided.al2
-      Timeout: 900
-      MemorySize: 1024
-      Environment:
-        Variables:
-          SQS_NAME: !Ref SQSProviderQueue
-      Policies:
-      - Statement:
-          - Effect: Allow
-            Action:
-              - sqs:SendMessage
-            Resource: !GetAtt SQSProviderQueue.Arn
-      Events:
-        HelloWorld:
-          Type: Api 
-          Properties:
-            Path: /
-            Method: post
-            RestApiId: !Ref ApiGatewayApi
   SQSConsumerFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -232,31 +205,6 @@ Resources:
           Properties:
             Queue: !GetAtt SQSProviderQueue.Arn
             BatchSize: 1
-  FileUploadFunction:
-    Type: AWS::Serverless::Function
-    Metadata:
-      BuildMethod: go1.x
-    Properties:
-      CodeUri: ../bin/image_upload.zip
-      FunctionName: !Sub "${ProjectName}-image_upload"
-      Handler: bootstrap
-      Runtime: provided.al2
-      Timeout: 900
-      MemorySize: 1024
-      Environment:
-        Variables:
-          BUCKET_NAME: !Ref DocumentBucket
-          BUCKET_KEY: !Sub "documentos/"
-      Policies:
-        - S3WritePolicy:
-            BucketName: !Ref DocumentBucket
-      Events:
-        UploadFile:
-          Type: Api 
-          Properties:
-            Path: /image_upload
-            Method: post
-            RestApiId: !Ref ApiGatewayApi
   FileReadFunction:
     Type: AWS::Serverless::Function
     Metadata:
