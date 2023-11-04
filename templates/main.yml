@@ -153,9 +153,7 @@ Resources:
   SQSProviderQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${ProjectName}-sqs_provider.fifo"
-      FifoQueue: true
-      ContentBasedDeduplication: true  # Habilitar la deduplicación basada en el contenido
+      QueueName: !Sub "${ProjectName}-sqs_provider"
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Metadata:
