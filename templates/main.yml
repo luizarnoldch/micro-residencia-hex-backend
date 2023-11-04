@@ -85,6 +85,8 @@ Resources:
         Variables:
           TABLE_NAME: !Ref DocumentTable
           SQS_NAME: !Ref SQSProviderQueue
+          BUCKET_NAME: !Ref DocumentBucket
+          BUCKET_KEY: !Sub "documentos/"
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref DocumentTable
