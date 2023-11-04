@@ -173,14 +173,14 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       FifoQueue: true
-      QueueName: !Sub "${ProjectName}-sqs_provider"
+      QueueName: !Sub "${ProjectName}-sqs_provider.fifo"
   SQSConsumerFunction:
     Type: AWS::Serverless::Function
     Metadata:
       BuildMethod: go1.x
     Properties:
       CodeUri: ../bin/sqs_consumer.zip
-      FunctionName: !Sub "${ProjectName}-sqs_consumer.fifo"
+      FunctionName: !Sub "${ProjectName}-sqs_consumer"
       Handler: bootstrap
       Runtime: provided.al2
       Policies:
