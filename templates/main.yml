@@ -150,6 +150,11 @@ Resources:
             Path: /document/filter
             Method: get
             RestApiId: !Ref ApiGatewayApi
+  SQSProviderQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      FifoQueue: true
+      QueueName: !Sub "${ProjectName}-sqs_provider.fifo"
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -159,6 +164,9 @@ Resources:
       FunctionName: !Sub "${ProjectName}-hello"
       Handler: bootstrap
       Runtime: provided.al2
+      Environment:
+        Variables:
+          SQS_NAME: !Ref SQSProviderQueue
       Policies:
         - SQSSendMessagePolicy:
             QueueName: !Ref SQSProviderQueue
@@ -169,11 +177,6 @@ Resources:
             Path: /
             Method: get
             RestApiId: !Ref ApiGatewayApi
-  SQSProviderQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      FifoQueue: true
-      QueueName: !Sub "${ProjectName}-sqs_provider.fifo"
   SQSConsumerFunction:
     Type: AWS::Serverless::Function
     Metadata:
