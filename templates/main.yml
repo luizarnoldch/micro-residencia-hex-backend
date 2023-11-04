@@ -168,8 +168,11 @@ Resources:
         Variables:
           SQS_NAME: !Ref SQSProviderQueue
       Policies:
-        - SQSSendMessagePolicy:
-            QueueName: !Ref SQSProviderQueue
+      - Statement:
+          - Effect: Allow
+            Action:
+              - sqs:SendMessage
+            Resource: !GetAtt SQSProviderQueue.Arn
       Events:
         HelloWorld:
           Type: Api 
