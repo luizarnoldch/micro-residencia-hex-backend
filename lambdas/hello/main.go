@@ -1,15 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"context"
-	"fmt"
-	"os"
-	// "mime"
 	"encoding/base64"
-	// "mime/multipart"
+	"encoding/json"
+	"fmt"
+	"io"
 	"log"
-	// "strings"
+	"mime"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -33,18 +36,18 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		}, fmt.Errorf("error loading AWS configuration: %w", err)
 	}
 
-	// log.Println("Starting Lambda handler")
-	// contentType := request.Headers["content-type"]
-	// if !strings.Contains(contentType, "multipart/form-data") {
-	// 	log.Println("Error: content type not multipart/form-data")
-	// 	return events.APIGatewayProxyResponse{StatusCode: http.StatusBadRequest}, nil
-	// }
+	log.Println("Starting Lambda handler")
+	contentType := request.Headers["content-type"]
+	if !strings.Contains(contentType, "multipart/form-data") {
+		log.Println("Error: content type not multipart/form-data")
+		return events.APIGatewayProxyResponse{StatusCode: http.StatusBadRequest}, nil
+	}
 
-	// mediaType, params, err := mime.ParseMediaType(contentType)
-	// if err != nil {
-	// 	log.Println("Error parsing media type:", err)
-	// 	return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
-	// }
+	mediaType, params, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		log.Println("Error parsing media type:", err)
+		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+	}
 	
 	log.Println("Request.Body:")
 	log.Println(request.Body)
@@ -65,56 +68,117 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	log.Println("fileData Based64Encoded:")
 	log.Println(fileData)
 
-	// var fileName string
-	// var fileBuffer bytes.Buffer
-	// var realFileName string 
+	var fileName string
+	var fileDepartamento string
+	var fileResidente string
+	var fileFechaPago string
+	var fileTipoServicio string
+	var fileBuffer bytes.Buffer
+	var realFileName string 
 
-	// if strings.HasPrefix(mediaType, "multipart/") {
-	// 	// Crea un multipart reader
-	// 	reader := multipart.NewReader(strings.NewReader(request.Body), params["boundary"])
+	if strings.HasPrefix(mediaType, "multipart/") {
+		// Crea un multipart reader
+		reader := multipart.NewReader(bytes.NewReader(fileData), params["boundary"])
+		for {
+			part, err := reader.NextPart()
+			if err == io.EOF {
+				log.Println("Reached end of multipart content")
+				break
+			}
+			if err != nil {
+				log.Println("Error reading multipart section:", err)
+				return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+			}
+			switch part.FormName() {
+			case "file_name":
+				nameData, err := io.ReadAll(part)
+				if err != nil {
+					log.Println("Error reading file_name part:", err)
+					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+				}
+				fileName = string(nameData)
+				log.Println("Received file name:", fileName)
+			case "file":
+				log.Println("Reading file content")
+				realFileName = part.FileName()
+				if _, err := io.Copy(&fileBuffer, part); err != nil {
+					log.Println("Error copying file content to buffer:", err)
+					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+				}
+			case "departamento":
+				nameData, err := io.ReadAll(part)
+				if err != nil {
+					log.Println("Error reading departamento part:", err)
+					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+				}
+				fileDepartamento = string(nameData)
+				log.Println("Received departamento name:", fileDepartamento)
+			case "residente":
+				nameData, err := io.ReadAll(part)
+				if err != nil {
+					log.Println("Error reading residente part:", err)
+					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+				}
+				fileResidente = string(nameData)
+				log.Println("Received residente name:", fileResidente)
+			case "fecha_de_pago":
+				nameData, err := io.ReadAll(part)
+				if err != nil {
+					log.Println("Error reading fecha_de_pago part:", err)
+					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+				}
+				fileFechaPago = string(nameData)
+				log.Println("Received fecha_de_pago:", fileFechaPago)
+			case "tipo_de_servicio":
+				nameData, err := io.ReadAll(part)
+				if err != nil {
+					log.Println("Error reading tipo_de_servicio part:", err)
+					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+				}
+				fileTipoServicio = string(nameData)
+				log.Println("Received tipo_de_servicio:", fileTipoServicio)
+			}
+		}
+	}
 
-	// 	// Parsea todos los campos
-	// 	form, err := reader.ReadForm(32 << 20) // 32MB es el tamaño máximo de la memoria
-	// 	if err != nil {
-	// 		fmt.Println("Error en ReadForm:", err)
-	// 		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
-	// 	}
-	// 	defer form.RemoveAll()
-
-	// 	// Procesar formularios y archivos
-	// 	for key, values := range form.Value {
-	// 		for _, value := range values {
-	// 			fmt.Printf("Key: %v, Value: %v\n", key, value)
-	// 		}
-	// 	}
-
-	// 	// Aquí podrías procesar los archivos, guardarlos en S3, etc.
-	// 	// En este ejemplo, simplemente los imprimimos en la salida estándar (stdout).
-	// 	for _, fileHeaders := range form.File {
-	// 		for _, fileHeader := range fileHeaders {
-	// 			file, err := fileHeader.Open()
-	// 			if err != nil {
-	// 				fmt.Println("Error al abrir el archivo:", err)
-	// 				continue
-	// 			}
-	// 			defer file.Close()
-
-	// 			fmt.Printf("Procesando archivo: %v\n", fileHeader.Filename)
-	// 			// Haz algo con el archivo, como leerlo o subirlo a S3...
-	// 			// Este es solo un ejemplo para leer y mostrar los primeros 512 bytes del archivo
-	// 			buffer := make([]byte, 512)
-	// 			n, err := file.Read(buffer)
-	// 			if err != nil && err != io.EOF {
-	// 				fmt.Println("Error al leer el archivo:", err)
-	// 				continue
-	// 			}
-	// 			fmt.Printf("Leídos %d bytes del archivo: %s\n", n, string(buffer[:n]))
-	// 		}
-	// 	}
-	// }
+	fmt.Println("fileName: ",fileName)
+	fmt.Println("fileDepartamento: ",fileDepartamento)
+	fmt.Println("fileResidente: ",fileResidente)
+	fmt.Println("fileFechaPago: ",fileFechaPago)
+	fmt.Println("fileTipoServicio: ",fileTipoServicio)
+	fmt.Println("fileBuffer: ",fileBuffer)
+	fmt.Println("realFileName: ",realFileName)
 
 
+	type FileInformation struct {
+		FileName        string `json:"file_name"`
+		Departamento    string `json:"departamento"`
+		Residente       string `json:"residente"`
+		FechaDePago     string `json:"fecha_de_pago"`
+		TipoDeServicio  string `json:"tipo_de_servicio"`
+		RealFileName    string `json:"real_file_name"`
+	}
 
+	// Crear una instancia de la estructura y asignar los valores de las variables
+	fileInfo := FileInformation{
+		FileName:        fileName,
+		Departamento:    fileDepartamento,
+		Residente:       fileResidente,
+		FechaDePago:     fileFechaPago,
+		TipoDeServicio:  fileTipoServicio,
+		RealFileName:    realFileName,
+	}
+
+	// Serializar la estructura a JSON
+	jsonData, err := json.Marshal(fileInfo)
+	if err != nil {
+		fmt.Println(err)
+		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+	}
+
+	// Convertir los datos JSON a una cadena y mostrarla
+	jsonString := string(jsonData)
+	fmt.Println(jsonString)
 
 	// ======================== SQS code ==========================================
 
@@ -124,7 +188,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	// Send message
 	msgInput := &sqs.SendMessageInput{
 		QueueUrl:               aws.String(SQS_NAME),
-		MessageBody:            aws.String("Hello World!"),
+		MessageBody:            aws.String(jsonString),
 	}
 	
 
