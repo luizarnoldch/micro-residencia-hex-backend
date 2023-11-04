@@ -35,7 +35,6 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		QueueUrl:               aws.String(SQS_NAME),
 		MessageBody:            aws.String("Hello World!"),
 		MessageGroupId:         aws.String("Group1"), // Required for FIFO queues
-		MessageDeduplicationId: aws.String("YourUniqueDeduplicationId"), // Add a unique deduplication ID
 	}
 	
 
