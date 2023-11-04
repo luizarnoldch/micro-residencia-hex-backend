@@ -60,6 +60,8 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 
 		// Log the file name
 		log.Println("File name:", fileData.FileName)
+		// Log the file name
+		log.Println("Real File name:", fileData.RealFileName)
 
 		// If the file content is not empty, store it in the S3 bucket
 		if len(fileContent) > 0 && fileData.FileName != "" {
