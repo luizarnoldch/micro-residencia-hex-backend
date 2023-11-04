@@ -170,13 +170,12 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${ProjectName}-sqs_provider"
-  
   HelloWorldPostFunction:
     Type: AWS::Serverless::Function
     Metadata:
       BuildMethod: go1.x
     Properties:
-      CodeUri: ../bin/hello.zip
+      CodeUri: ../bin/hello_post.zip
       FunctionName: !Sub "${ProjectName}-hello_post"
       Handler: bootstrap
       Runtime: provided.al2

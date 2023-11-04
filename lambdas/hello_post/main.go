@@ -141,13 +141,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		}
 	}
 
-	fmt.Println("fileName: ",fileName)
-	fmt.Println("fileDepartamento: ",fileDepartamento)
-	fmt.Println("fileResidente: ",fileResidente)
-	fmt.Println("fileFechaPago: ",fileFechaPago)
-	fmt.Println("fileTipoServicio: ",fileTipoServicio)
-	fmt.Println("fileBuffer: ",fileBuffer)
-	fmt.Println("realFileName: ",realFileName)
+	log.Println("fileName: ",fileName)
+	log.Println("fileDepartamento: ",fileDepartamento)
+	log.Println("fileResidente: ",fileResidente)
+	log.Println("fileFechaPago: ",fileFechaPago)
+	log.Println("fileTipoServicio: ",fileTipoServicio)
+	log.Println("fileBuffer: ",fileBuffer)
+	log.Println("realFileName: ",realFileName)
 
 
 	type FileInformation struct {
@@ -178,7 +178,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	// Convertir los datos JSON a una cadena y mostrarla
 	jsonString := string(jsonData)
-	fmt.Println(jsonString)
+	log.Println(jsonString)
 
 	// ======================== SQS code ==========================================
 
