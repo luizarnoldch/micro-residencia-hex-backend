@@ -180,7 +180,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ../bin/sqs_consumer.zip
-      FunctionName: !Sub "${ProjectName}-sqs_consumer"
+      FunctionName: !Sub "${ProjectName}-sqs_consumer.fifo"
       Handler: bootstrap
       Runtime: provided.al2
       Policies:
