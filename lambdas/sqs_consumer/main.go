@@ -67,7 +67,7 @@ func handler(ctx context.Context, sqsEvent events.SQSEvent) error {
 		if len(fileContent) > 0 && fileData.FileName != "" {
 			log.Println("Storing file to S3 bucket")
 			fileExt := filepath.Ext(fileData.RealFileName)
-			key := BUCKET_KEY + fileData.FileName + fileExt
+			key := BUCKET_KEY + fileData.RealFileName + fileExt
 			log.Println("Using S3 key:", key)
 
 			// Create a reader from the file content
