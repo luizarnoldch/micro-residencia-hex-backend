@@ -365,9 +365,6 @@ Outputs:
   DocumentoApi:
     Description: "API Gateway endpoint URL para documentos"
     Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
-  PagosDynamoDBTable:
-    Description: The name of the DynamoDB Table
-    Value: !Ref DynamoDBTable
   GraphQLApiEndpoint:
     Description: The URL to the GraphQL Endpoint
     Value: !GetAtt AppSyncApi.GraphQLUrl
