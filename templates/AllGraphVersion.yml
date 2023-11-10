@@ -11,6 +11,12 @@ Parameters:
     Type: String
     Description: Stage of API GATEWAY
     Default: Prod
+  TableName: 
+    Type: String
+    Description: (Required) The name of the DynamoDB table you want to create and save to. Minimum 3 characters
+    MinLength: 3
+    MaxLength: 50
+    Default: 'pagos'
 Resources:
   ApiGatewayApi:
     Type: AWS::Serverless::Api
@@ -297,67 +303,144 @@ Resources:
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
       Definition: !Sub |
-        type Document {
-          id_documento: ID
+        type ${TableName} {
+          ${TableName}_id: ID!
           departamento: String
-          residente: String
+          servicio: String
           fecha_de_pago: String
-          tipo_de_servicio: String
-          url_pdf: String
+          estado: String
+          cantidad: String
+        }
+        type Paginated_${TableName} {
+          items: [${TableName}!]!
+          nextToken: String
         }
         type Query {
-          GetAll: [Document]
+          all(limit: Int, nextToken: String): Paginated_${TableName}!
+          getOne(${TableName}_id: ID!): ${TableName}
+        }
+        type Mutation {
+          save(${TableName}_id: ID!, name: String!): ${TableName}
+          delete(${TableName}_id: ID!): ${TableName}
         }
         type Schema {
           query: Query
+          mutation: Mutation
         }
-  AppSyncDynamoDBRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              Service: "appsync.amazonaws.com"
-            Action: "sts:AssumeRole"
-      Policies:
-        - PolicyName: "DynamoDBAccess"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Allow"
-                Action:
-                  - "dynamodb:Query"
-                  - "dynamodb:Scan"
-                  - 'dynamodb:PartiQLSelect'
-                Resource: !GetAtt DocumentTable.Arn
   AppSyncTableDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
-      Name: "DocumentTableDataSource"
-      Description: "DynamoDB Table AppSync Data Source for Document Table"
+      Name: !Ref TableName
+      Description: DynamoDB Table AppSync Data Source
       Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt DynamoDBRole.Arn
       DynamoDBConfig:
-        TableName: !Ref DocumentTable
-        AwsRegion: !Ref AWS::Region
-      ServiceRoleArn: !GetAtt AppSyncDynamoDBRole.Arn
-  AppSyncGetAllDocumentsResolver:
-    Type: "AWS::AppSync::Resolver"
+        TableName: !Ref DynamoDBTable
+        AwsRegion: !Sub ${AWS::Region}
+
+  AppSyncGetOneQueryResolver:
+    Type: AWS::AppSync::Resolver
     DependsOn: AppSyncSchema
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: "Query"
-      FieldName: "GetAll"
+      TypeName: Query
+      FieldName: getOne
       DataSourceName: !GetAtt AppSyncTableDataSource.Name
-      RequestMappingTemplate: |
+      RequestMappingTemplate: !Sub |
         {
           "version": "2017-02-28",
-          "operation": "Scan",
-          "limit": 100
+          "operation": "GetItem",
+          "key": {
+            "${TableName}_id": $util.dynamodb.toDynamoDBJson($ctx.args.${TableName}_id)
+          }
         }
-      ResponseMappingTemplate: "$util.toJson($context.result.items)"
+      ResponseMappingTemplate: "$util.toJson($ctx.result)"
+  AppSyncAllQueryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: all
+      DataSourceName: !GetAtt AppSyncTableDataSource.Name
+      RequestMappingTemplate: !Sub |
+        {
+          "version": "2017-02-28",
+          "operation" : "Scan",
+          "limit": $util.defaultIfNull($ctx.args.limit, 20),
+          "nextToken": $util.toJson($util.defaultIfNullOrEmpty($ctx.args.nextToken, null))
+        },
+      ResponseMappingTemplate: "$util.toJson($ctx.result)"
+  AppSyncSaveMutationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: save
+      DataSourceName: !GetAtt AppSyncTableDataSource.Name
+      RequestMappingTemplate: !Sub |
+        {
+          "version": "2017-02-28",
+          "operation": "PutItem",
+          "key": {
+            "${TableName}_id": $util.dynamodb.toDynamoDBJson($ctx.args.${TableName}_id)
+          },
+          "attributeValues": {
+            "name": $util.dynamodb.toDynamoDBJson($ctx.args.name)
+          }
+        }
+      ResponseMappingTemplate: "$util.toJson($ctx.result)"
+  AppSyncDeleteMutationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: delete
+      DataSourceName: !GetAtt AppSyncTableDataSource.Name
+      RequestMappingTemplate: !Sub |
+        {
+          "version": "2017-02-28",
+          "operation": "DeleteItem",
+          "key": {
+            "${TableName}_id": $util.dynamodb.toDynamoDBJson($ctx.args.${TableName}_id)
+          }
+        }
+      ResponseMappingTemplate: "$util.toJson($ctx.result)"
+  DynamoDBRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${TableName}-appsync-dynamodb-role
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service:
+                - appsync.amazonaws.com
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${ProjectName}-${TableName}
+      AttributeDefinitions:
+        -
+          AttributeName: !Sub ${TableName}_id
+          AttributeType: S
+      KeySchema:
+        -
+          AttributeName: !Sub ${TableName}_id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
 Outputs:
   DocumentDynamoDBTable:
     Description: Nombre de la tabla de documentos en DynamoDB
