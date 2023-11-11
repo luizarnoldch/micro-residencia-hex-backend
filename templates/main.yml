@@ -247,7 +247,7 @@ Resources:
   DocumentBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: "documentos-pdf"
+      BucketName: "documentos-1-pdf"
       PublicAccessBlockConfiguration:
           BlockPublicAcls: false
       OwnershipControls:
