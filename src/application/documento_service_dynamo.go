@@ -72,7 +72,8 @@ func (dynamo DocumentoServiceDynamo) UpdateDocument(req domain.DocumentoRequest,
 		Set(expression.Name("departamento"), expression.Value(reqToDoc.Departamento)).
 		Set(expression.Name("residente"), expression.Value(reqToDoc.Residente)).
 		Set(expression.Name("fecha_de_pago"), expression.Value(reqToDoc.FechaDePago)).
-		Set(expression.Name("tipo_de_servicio"), expression.Value(reqToDoc.TipoDeServicio))
+		Set(expression.Name("tipo_de_servicio"), expression.Value(reqToDoc.TipoDeServicio)).
+		Set(expression.Name("estado_documento"), expression.Value(reqToDoc.TipoDeServicio))
 
 	expr, err := expression.NewBuilder().WithUpdate(update).Build()
 	if err != nil {

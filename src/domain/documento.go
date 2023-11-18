@@ -17,6 +17,7 @@ type DocumentoRequest struct {
 	Residente      string `json:"residente"`
 	FechaDePago    string `json:"fecha_de_pago"`
 	TipoDeServicio string `json:"tipo_de_servicio"`
+	StateDocument	string `json:"estado_documento"`
 }
 
 type Documento struct {
@@ -25,6 +26,7 @@ type Documento struct {
 	Residente      string `dynamodbav:"residente" json:"residente"`
 	FechaDePago    string `dynamodbav:"fecha_de_pago" json:"fecha_de_pago"`
 	TipoDeServicio string `dynamodbav:"tipo_de_servicio" json:"tipo_de_servicio"`
+	StateDocument	string `dynamodbav:"estado_documento" json:"estado_documento"`
 	UrlPDF         string `dynamodbav:"url_pdf" json:"url_pdf"`
 }
 
@@ -35,6 +37,7 @@ func (doc Documento) ToDocumentoResponse() DocumentoResponse {
 		Residente:      doc.Residente,
 		FechaDePago:    doc.FechaDePago,
 		TipoDeServicio: doc.TipoDeServicio,
+		StateDocument:  doc.StateDocument,
 		UrlPDF:         doc.UrlPDF,
 	}
 }
@@ -49,6 +52,7 @@ func (req DocumentoRequest) ToDocumento() Documento {
 		Residente:      req.Residente,
 		FechaDePago:    req.FechaDePago,
 		TipoDeServicio: req.TipoDeServicio,
+		StateDocument:  req.StateDocument,
 		UrlPDF:         url,
 	}
 }
@@ -60,5 +64,6 @@ type DocumentoResponse struct {
 	FechaDePago    string `json:"fecha_de_pago"`
 	TipoDeServicio string `json:"tipo_de_servicio"`
 	UrlPDF         string `json:"url_pdf"`
+	StateDocument	string `json:"estado_documento"`
 	Message        string `json:"message"`
 }

@@ -94,8 +94,10 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	var fileResidente string
 	var fileFechaPago string
 	var fileTipoServicio string
+	var fileStateDocument string 
 	var fileBuffer bytes.Buffer
 	var realFileName string 
+	
 
 	if strings.HasPrefix(mediaType, "multipart/") {
 		// Crea un multipart reader
@@ -158,6 +160,15 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 				}
 				fileTipoServicio = string(nameData)
 				log.Println("Received tipo_de_servicio:", fileTipoServicio)
+			
+			case "estado_documento":
+				nameData, err := io.ReadAll(part)
+				if err != nil {
+					log.Println("Error reading tipo_de_servicio part:", err)
+					return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, err
+				}
+				fileStateDocument = string(nameData)
+				log.Println("Received tipo_de_servicio:", fileStateDocument)
 			}
 		}
 	}
@@ -167,14 +178,18 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	log.Println("fileResidente: ",fileResidente)
 	log.Println("fileFechaPago: ",fileFechaPago)
 	log.Println("fileTipoServicio: ",fileTipoServicio)
+	log.Println("fileStateDocument: ",fileStateDocument)
 	log.Println("fileBuffer: ",fileBuffer)
 	log.Println("realFileName: ",realFileName)
+	
+	
 
 	documentoRequest := domain.DocumentoRequest{
 		Departamento: fileDepartamento,
 		Residente: fileResidente,
 		FechaDePago: fileFechaPago,
 		TipoDeServicio: fileTipoServicio,
+		StateDocument: fileStateDocument,
 	}
 
 	// Convertir el bytes.Buffer a base64 para que pueda ser representado en JSON

@@ -285,7 +285,7 @@ Resources:
   AppSyncApi:
     Type: AWS::AppSync::GraphQLApi
     Properties:
-      Name: !Sub ${ProjectName}-GraphQLApi$-{Stage}
+      Name: !Sub ${ProjectName}-GraphQLApi-${Stage}
       AuthenticationType: API_KEY
     
   AppSyncAPIKey:
